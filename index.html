@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UPH Standard Calculator</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        /* ===== Form Container ===== */
+        .form-container {
+            max-width: 420px;
+            margin: 0 auto 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .form-container h2 {
+            margin: 0 0 4px 0;
+            font-size: 18px;
+        }
+
+        .form-container .sub {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 14px;
+            line-height: 1.35;
+        }
+
+        .form-container label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .form-container input {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+
+        /* ===== Panels ===== */
+        .panel {
+            margin-top: 14px;
+            padding: 12px;
+            border: 1px solid #d7d7d7;
+            border-radius: 10px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .panel-title {
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .panel-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+            line-height: 1.35;
+        }
+
+        .dept-head {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            opacity: 0.65;
+            margin: 12px 0 6px 0;
+        }
+
+        .dept-head:first-child {
+            margin-top: 0;
+        }
+
+        /* ===== Tabs / presets ===== */
+        .tabbar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .form-container .tab-btn,
+        .form-container .preset-btn {
+            background: #fff;
+            color: #111;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-top: 0;
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        .form-container .tab-btn:hover,
+        .form-container .preset-btn:hover {
+            background: #f2f2f2;
+        }
+
+        .form-container .tab-btn:focus,
+        .form-container .preset-btn:focus {
+            outline: 2px solid #4CAF50;
+            outline-offset: 2px;
+        }
+
+        .form-container .tab-btn {
+            width: 100%;
+            font-weight: 800;
+        }
+
+        .form-container .tab-btn.active {
+            background: #4CAF50;
+            border-color: #4CAF50;
+            color: #fff;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.22);
+        }
+
+        .form-container .tab-btn.active:hover {
+            background: #45a049;
+            border-color: #45a049;
+        }
+
+        /* ===== Per-line entry blocks ===== */
+        .line-block {
+            padding: 8px 0 9px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .line-block:last-child {
+            border-bottom: none;
+        }
+
+        .line-block .nm {
+            display: block;
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .line-block .fields {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 92px;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .line-block input {
+            margin: 0;
+            padding: 7px;
+            font-size: 15px;
+        }
+
+        .line-block input.rate {
+            text-align: right;
+        }
+
+        .jb {
+            display: block;
+            font-size: 10px;
+            font-weight: 400;
+            opacity: 0.75;
+            max-width: 88px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ===== Stop editor rows ===== */
+        .stop-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 96px 52px 60px 30px;
+            gap: 5px;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .stop-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 96px 52px 60px 30px;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        .stop-row input {
+            margin: 0;
+            padding: 6px;
+            font-size: 14px;
+        }
+
+        .form-container .pay-btn {
+            width: 100%;
+            margin-top: 0;
+            padding: 7px 0;
+            font-size: 11px;
+            font-weight: 800;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: #eef7ee;
+            color: #2e7d32;
+        }
+
+        .form-container .pay-btn.unpaid {
+            background: #fff4e5;
+            color: #a35c00;
+            border-color: #f0d3a8;
+        }
+
+        .form-container .stop-del {
+            width: 30px;
+            padding: 6px 0;
+            margin-top: 0;
+            background: #fff;
+            color: #b3261e;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .form-container .stop-del:hover {
+            background: #fdecea;
+        }
+
+        /* ===== Output ===== */
+        .output-container {
+            margin-top: 20px;
+        }
+
+        .output-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+        }
+
+        .output-row strong {
+            flex: 1;
+            text-align: left;
+        }
+
+        .output-row .value {
+            flex: 1;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .goal-box {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px dashed #999;
+            border-radius: 6px;
+            background: #fff;
+            text-align: center;
+        }
+
+        .goal-box .label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .goal-box .big {
+            font-size: 30px;
+            font-weight: 800;
+            line-height: 1.2;
+            color: #2e7d32;
+            word-break: break-word;
+        }
+
+        .tbl-wrap {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table.hrs {
+            border-collapse: collapse;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        table.hrs th {
+            text-align: right;
+            font-size: 11px;
+            padding: 6px 5px;
+            border-bottom: 2px solid #ccc;
+            white-space: nowrap;
+        }
+
+        table.hrs td {
+            text-align: right;
+            padding: 7px 5px;
+            border-bottom: 1px solid #eee;
+            white-space: nowrap;
+        }
+
+        table.hrs th.l,
+        table.hrs td.l {
+            text-align: left;
+        }
+
+        table.hrs tr.hasunpaid td {
+            background: #fffbe6;
+        }
+
+        table.hrs tr.tot td {
+            border-top: 2px solid #ccc;
+            border-bottom: none;
+            font-weight: 800;
+            background: #f4f8f4;
+        }
+
+        .win {
+            font-size: 11px;
+            opacity: 0.85;
+        }
+
+        .brkdot {
+            color: #2e7d32;
+            font-weight: 800;
+        }
+
+        .hint {
+            font-size: 12px;
+            opacity: 0.85;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        .warn {
+            font-size: 12px;
+            color: #a33;
+            margin-top: 8px;
+            line-height: 1.35;
+        }
+
+        .rev {
+            margin-top: 10px;
+            font-size: 12px;
+            opacity: 0.75;
+            text-align: right;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>UPH Standard Calculator</h2>
+    <div class="sub">Run time &times; UPH = shift goal, broken out by hour. Paid breaks count toward the standard; only unpaid time is removed.</div>
+
+    <div class="tabbar" role="tablist" aria-label="Mode">
+        <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-mode="single">Single line</button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-mode="all">All lines</button>
+    </div>
+
+    <label for="ss">Shift start</label>
+    <input type="time" id="ss" value="16:15" />
+
+    <label for="se">Shift end</label>
+    <input type="time" id="se" value="02:45" />
+
+    <div class="panel" id="single-panel">
+        <div class="panel-title">Job</div>
+        <div class="panel-subtitle">Job number, work order, or any note that tells you what's running.</div>
+        <label for="job-single">Job / note</label>
+        <input type="text" id="job-single" placeholder="e.g. W123456 or grinder blend" />
+        <label for="uph-single">UPH</label>
+        <input type="number" id="uph-single" min="0" step="1" inputmode="numeric" placeholder="units per hour" />
+    </div>
+
+    <div class="panel" id="all-panel" style="display:none">
+        <div class="panel-title">Jobs by line</div>
+        <div class="panel-subtitle">Enter a UPH for each line you're running, plus a job number or note. Lines without a UPH are skipped. Everything is saved on this device.</div>
+        <div id="uph-list"></div>
+        <button type="button" class="preset-btn" id="clear-uph" style="margin-top:10px">Clear all jobs &amp; rates</button>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">Scheduled stops</div>
+        <div class="panel-subtitle">Tap Paid / Unpaid to switch. Paid stops are shown for reference only &mdash; they don't reduce the goal. Add an unpaid stop for a changeover or planned downtime.</div>
+
+        <div class="stop-head"><div>Description</div><div>Start</div><div>Min</div><div>Type</div><div></div></div>
+        <div id="stops"></div>
+
+        <button type="button" class="preset-btn" id="preset-default" style="margin-top:10px">Reset to default schedule</button>
+        <button type="button" id="addstop">+ Add stop</button>
+    </div>
+
+    <div class="output-container">
+        <div class="output-row"><strong>Shift length</strong><span class="value" id="o-len">&mdash;</span></div>
+        <div class="output-row"><strong>Unpaid time</strong><span class="value" id="o-unpaid">&mdash;</span></div>
+        <div class="output-row"><strong>Expected run time</strong><span class="value" id="o-run">&mdash;</span></div>
+
+        <div class="goal-box" id="goal-box">
+            <div class="label" id="o-goallabel">Total shift goal</div>
+            <div class="big" id="o-goal">&mdash;</div>
+        </div>
+
+        <div class="tabbar" id="view-tabs" style="display:none;margin-top:14px">
+            <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-view="hourly">Hourly</button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-view="cum">Cumulative</button>
+        </div>
+
+        <div class="tbl-wrap"><table class="hrs" id="tbl"></table></div>
+        <div class="warn" id="warn"></div>
+
+        <div class="hint" id="hint"></div>
+    </div>
+
+    <div class="rev" id="rev-stamp"></div>
+</div>
+
+<script>
+(function () {
+    var LS = "uph.state.v2";
+
+    var GROUPS = [
+        { d: "Dry Spice", lines: ["DS2", "DS3", "DS4-Dessert", "DS4-Spice", "DS7", "DS8", "Pouch"] },
+        { d: "Handwork", lines: ["2-3", "2-4"] },
+        { d: "Extracts", lines: ["Express", "811", "Liquid", "XL Cream"] }
+    ];
+
+    var ALL_LINES = GROUPS.reduce(function (a, g) { return a.concat(g.lines); }, []);
+
+    function defaultStops() {
+        return [
+            { n: "Paid break", t: "18:15", m: 10, paid: true },
+            { n: "Unpaid lunch", t: "20:15", m: 30, paid: false },
+            { n: "Paid break", t: "22:45", m: 10, paid: true },
+            { n: "Paid break", t: "00:45", m: 10, paid: true }
+        ];
+    }
+
+    var state = {
+        mode: "single",
+        view: "hourly",
+        ss: "16:15",
+        se: "02:45",
+        single: 0,
+        singleJob: "",
+        uph: {},
+        job: {},
+        stops: defaultStops()
+    };
+
+    function save() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} }
+
+    function load() {
+        try {
+            var s = JSON.parse(localStorage.getItem(LS) || "null");
+            if (!s || typeof s !== "object") return;
+            state.mode = s.mode === "all" ? "all" : "single";
+            state.view = s.view === "cum" ? "cum" : "hourly";
+            state.ss = s.ss || state.ss;
+            state.se = s.se || state.se;
+            state.single = parseFloat(s.single) || 0;
+            state.singleJob = typeof s.singleJob === "string" ? s.singleJob : "";
+            if (s.uph && typeof s.uph === "object") state.uph = s.uph;
+            if (s.job && typeof s.job === "object") state.job = s.job;
+            if (Array.isArray(s.stops) && s.stops.length) state.stops = s.stops;
+        } catch (e) {}
+    }
+
+    function tm(s) {
+        var p = String(s || "0:00").split(":");
+        return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0);
+    }
+
+    function fmt(mins) {
+        mins = ((mins % 1440) + 1440) % 1440;
+        var h = Math.floor(mins / 60), m = mins % 60;
+        var ap = h < 12 ? "AM" : "PM", hh = h % 12;
+        if (hh === 0) hh = 12;
+        return hh + ":" + String(m).padStart(2, "0") + " " + ap;
+    }
+
+    function num(x) { return Math.round(x).toLocaleString(); }
+    function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); }
+
+    function activeLines() {
+        return ALL_LINES.filter(function (l) { return (parseFloat(state.uph[l]) || 0) > 0; });
+    }
+
+    /* ===== Math ===== */
+
+    function build() {
+        var s = tm(state.ss), e = tm(state.se);
+        var len = ((e - s) % 1440 + 1440) % 1440;
+        if (len === 0) len = 1440;
+
+        var flag = new Array(len).fill(1);
+        var unpaid = 0, outside = 0;
+        var paidAt = [];
+
+        state.stops.forEach(function (st) {
+            var off = ((tm(st.t) - s) % 1440 + 1440) % 1440;
+            var d = Math.max(0, parseInt(st.m, 10) || 0);
+            if (d === 0) return;
+            if (off >= len) { outside++; return; }
+            if (st.paid) { paidAt.push({ off: off, end: off + d }); return; }
+            for (var k = off; k < off + d && k < len; k++) {
+                if (flag[k] === 1) { flag[k] = 0; unpaid++; }
+            }
+        });
+
+        var rows = [], pos = 0;
+        while (pos < len) {
+            var bl = Math.min(60, len - pos);
+            var p = 0;
+            for (var k = pos; k < pos + bl; k++) p += flag[k];
+            var hasPaid = paidAt.some(function (b) { return b.off < pos + bl && b.end > pos; });
+            rows.push({ i: rows.length + 1, st: s + pos, en: s + pos + bl, blk: bl, prod: p, paid: hasPaid });
+            pos += bl;
+        }
+
+        return { len: len, unpaid: unpaid, run: len - unpaid, rows: rows, outside: outside };
+    }
+
+    /* ===== Rendering ===== */
+
+    function renderTabs() {
+        document.querySelectorAll(".tab-btn[data-mode]").forEach(function (b) {
+            var on = b.dataset.mode === state.mode;
+            b.classList.toggle("active", on);
+            b.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        document.querySelectorAll(".tab-btn[data-view]").forEach(function (b) {
+            var on = b.dataset.view === state.view;
+            b.classList.toggle("active", on);
+            b.setAttribute("aria-selected", on ? "true" : "false");
+        });
+        document.getElementById("single-panel").style.display = state.mode === "single" ? "" : "none";
+        document.getElementById("all-panel").style.display = state.mode === "all" ? "" : "none";
+        document.getElementById("goal-box").style.display = state.mode === "single" ? "" : "none";
+        document.getElementById("view-tabs").style.display = state.mode === "all" ? "" : "none";
+    }
+
+    function renderUphList() {
+        var h = "";
+        GROUPS.forEach(function (g) {
+            h += '<div class="dept-head">' + g.d + "</div>";
+            g.lines.forEach(function (l) {
+                var v = state.uph[l];
+                var j = state.job[l] || "";
+                h += '<div class="line-block"><span class="nm">' + l + "</span><div class=\"fields\">" +
+                    '<input type="text" placeholder="Job / note" data-job="' + esc(l) + '" value="' + esc(j) +
+                    '" aria-label="Job for ' + esc(l) + '" />' +
+                    '<input type="number" class="rate" min="0" step="1" inputmode="numeric" placeholder="UPH" data-line="' +
+                    esc(l) + '" value="' + (v ? v : "") + '" aria-label="UPH for ' + esc(l) + '" /></div></div>';
+            });
+        });
+        document.getElementById("uph-list").innerHTML = h;
+    }
+
+    function renderStops() {
+        document.getElementById("stops").innerHTML = state.stops.map(function (st, i) {
+            return '<div class="stop-row">' +
+                '<input type="text" value="' + esc(st.n) + '" data-k="n" data-i="' + i + '" aria-label="Description" />' +
+                '<input type="time" value="' + st.t + '" data-k="t" data-i="' + i + '" aria-label="Start time" />' +
+                '<input type="number" min="0" step="5" inputmode="numeric" value="' + st.m + '" data-k="m" data-i="' + i + '" aria-label="Minutes" />' +
+                '<button type="button" class="pay-btn' + (st.paid ? "" : " unpaid") + '" data-pay="' + i +
+                '" aria-label="Toggle paid or unpaid">' + (st.paid ? "Paid" : "Unpaid") + "</button>" +
+                '<button type="button" class="stop-del" data-del="' + i + '" aria-label="Remove stop">&times;</button>' +
+                "</div>";
+        }).join("");
+    }
+
+    function calc() {
+        var d = build();
+
+        document.getElementById("o-len").textContent = (d.len / 60).toFixed(2) + " hr (" + d.len + " min)";
+        document.getElementById("o-unpaid").textContent = d.unpaid + " min";
+        document.getElementById("o-run").textContent = (d.run / 60).toFixed(2) + " hr (" + d.run + " min)";
+
+        var h, cum, anyPaid = d.rows.some(function (r) { return r.paid; });
+
+        if (state.mode === "single") {
+            var u = state.single;
+            var jb = state.singleJob.trim();
+            document.getElementById("o-goallabel").textContent = jb ? "Total shift goal \u2014 " + jb : "Total shift goal";
+            document.getElementById("o-goal").textContent = u ? num(d.run / 60 * u) : "\u2014";
+
+            h = '<thead><tr><th class="l">Hr</th><th class="l">Window</th><th>Run</th><th>Goal</th><th>Cum.</th></tr></thead><tbody>';
+            cum = 0;
+            d.rows.forEach(function (r) {
+                var g = (r.prod / 60) * u;
+                cum += g;
+                h += '<tr class="' + (r.prod < r.blk ? "hasunpaid" : "") + '"><td class="l">' + r.i + "</td>" +
+                    '<td class="l"><span class="win">' + fmt(r.st) + "&ndash;" + fmt(r.en) +
+                    (r.paid ? ' <span class="brkdot">&bull;</span>' : "") + "</span></td>" +
+                    "<td>" + r.prod + "</td><td>" + (u ? num(g) : "\u2014") + "</td><td>" + (u ? num(cum) : "\u2014") + "</td></tr>";
+            });
+            h += '<tr class="tot"><td class="l" colspan="2">Total</td><td>' + d.run + "</td><td>" +
+                (u ? num(cum) : "\u2014") + "</td><td></td></tr></tbody>";
+        } else {
+            var lines = activeLines();
+            h = '<thead><tr><th class="l">Hr</th><th class="l">Window</th><th>Run</th>';
+            lines.forEach(function (l) {
+                var j = (state.job[l] || "").trim();
+                h += "<th>" + esc(l) + (j ? '<span class="jb" title="' + esc(j) + '">' + esc(j) + "</span>" : "") + "</th>";
+            });
+            h += "</tr></thead><tbody>";
+
+            var cums = lines.map(function () { return 0; });
+            d.rows.forEach(function (r) {
+                h += '<tr class="' + (r.prod < r.blk ? "hasunpaid" : "") + '"><td class="l">' + r.i + "</td>" +
+                    '<td class="l"><span class="win">' + fmt(r.st) + "&ndash;" + fmt(r.en) +
+                    (r.paid ? ' <span class="brkdot">&bull;</span>' : "") + "</span></td><td>" + r.prod + "</td>";
+                lines.forEach(function (l, j) {
+                    var g = (r.prod / 60) * (parseFloat(state.uph[l]) || 0);
+                    cums[j] += g;
+                    h += "<td>" + num(state.view === "cum" ? cums[j] : g) + "</td>";
+                });
+                h += "</tr>";
+            });
+
+            h += '<tr class="tot"><td class="l" colspan="2">Shift goal</td><td>' + d.run + "</td>";
+            lines.forEach(function (l, j) { h += "<td>" + num(cums[j]) + "</td>"; });
+            h += "</tr></tbody>";
+
+            if (!lines.length) {
+                h = '<tbody><tr><td class="l" style="opacity:.7;padding:10px 0">Enter a UPH for at least one line.</td></tr></tbody>';
+            }
+        }
+
+        document.getElementById("tbl").innerHTML = h;
+
+        document.getElementById("warn").textContent = d.outside
+            ? d.outside + " stop(s) start outside the shift window and were ignored."
+            : "";
+
+        var hint = "Notes:<br>&bull; Paid breaks stay in the standard, so those hours keep a full goal" +
+            (anyPaid ? ' (marked <span class="brkdot">&bull;</span>)' : "") +
+            "<br>&bull; Highlighted rows lose minutes to unpaid time" +
+            "<br>&bull; Lunch is entered as 30 min even though the stop runs 35" +
+            "<br>&bull; A partial final hour is prorated, not given a full goal";
+        document.getElementById("hint").innerHTML = hint;
+
+        save();
+    }
+
+    function refresh() {
+        renderTabs();
+        renderUphList();
+        renderStops();
+        calc();
+    }
+
+    /* ===== Events ===== */
+
+    document.addEventListener("click", function (ev) {
+        var b = ev.target.closest("button");
+        if (!b) return;
+
+        if (b.dataset.mode) { state.mode = b.dataset.mode; renderTabs(); calc(); return; }
+        if (b.dataset.view) { state.view = b.dataset.view; renderTabs(); calc(); return; }
+
+        if (b.dataset.pay !== undefined) {
+            var pi = parseInt(b.dataset.pay, 10);
+            state.stops[pi].paid = !state.stops[pi].paid;
+            renderStops();
+            calc();
+            return;
+        }
+        if (b.dataset.del !== undefined) {
+            state.stops.splice(parseInt(b.dataset.del, 10), 1);
+            renderStops();
+            calc();
+            return;
+        }
+        if (b.id === "addstop") {
+            state.stops.push({ n: "Changeover", t: "18:15", m: 0, paid: false });
+            renderStops();
+            calc();
+            return;
+        }
+        if (b.id === "preset-default") {
+            state.ss = "16:15";
+            state.se = "02:45";
+            document.getElementById("ss").value = state.ss;
+            document.getElementById("se").value = state.se;
+            state.stops = defaultStops();
+            renderStops();
+            calc();
+            return;
+        }
+        if (b.id === "clear-uph") {
+            state.uph = {};
+            state.job = {};
+            renderUphList();
+            calc();
+            return;
+        }
+    });
+
+    /* Scroll wheel must not change number inputs. Blurring on wheel drops the
+       spin behavior while leaving the page free to scroll normally. */
+    document.addEventListener("wheel", function (ev) {
+        var el = ev.target;
+        if (el && el.tagName === "INPUT" && el.type === "number" && el === document.activeElement) {
+            el.blur();
+        }
+    }, { passive: true });
+
+    document.addEventListener("input", function (ev) {
+        var t = ev.target;
+
+        if (t.id === "ss") { state.ss = t.value; calc(); return; }
+        if (t.id === "se") { state.se = t.value; calc(); return; }
+        if (t.id === "uph-single") { state.single = Math.max(0, parseFloat(t.value) || 0); calc(); return; }
+        if (t.id === "job-single") { state.singleJob = t.value; calc(); return; }
+
+        if (t.dataset.job !== undefined) {
+            if (t.value.trim()) state.job[t.dataset.job] = t.value;
+            else delete state.job[t.dataset.job];
+            calc();
+            return;
+        }
+
+        if (t.dataset.line !== undefined) {
+            var v = Math.max(0, parseFloat(t.value) || 0);
+            if (v) state.uph[t.dataset.line] = v; else delete state.uph[t.dataset.line];
+            calc();
+            return;
+        }
+
+        if (t.dataset.k !== undefined && t.dataset.i !== undefined) {
+            var i = parseInt(t.dataset.i, 10);
+            if (!state.stops[i]) return;
+            if (t.dataset.k === "m") state.stops[i].m = Math.max(0, parseInt(t.value, 10) || 0);
+            else state.stops[i][t.dataset.k] = t.value;
+            calc();
+        }
+    });
+
+    /* ===== Init ===== */
+
+    load();
+    document.getElementById("ss").value = state.ss;
+    document.getElementById("se").value = state.se;
+    document.getElementById("uph-single").value = state.single || "";
+    document.getElementById("job-single").value = state.singleJob || "";
+    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-29d";
+    refresh();
+})();
+</script>
+</body>
+</html>
