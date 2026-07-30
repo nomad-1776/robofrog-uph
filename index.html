@@ -234,22 +234,14 @@
 
         .times {
             display: none;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 66px;
-            gap: 6px;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 54px;
+            gap: 5px;
             align-items: end;
             margin-top: 6px;
         }
 
-        .times .tf {
+        .tf {
             min-width: 0;
-        }
-
-        .times .cap {
-            display: block;
-            font-size: 10px;
-            font-weight: 700;
-            opacity: 0.65;
-            margin-bottom: 2px;
         }
 
         .times input {
@@ -261,7 +253,7 @@
             width: 100%;
             margin-top: 0;
             padding: 7px 0;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
             background: #fff;
             color: #333;
@@ -293,26 +285,41 @@
         }
 
         /* ===== Stop editor rows ===== */
-        .stop-row,
-        .stop-head {
+        .stop-item {
+            padding: 8px 0 9px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stop-item:last-child {
+            border-bottom: none;
+        }
+
+        .stop-item input.desc {
+            width: 100%;
+            margin: 0 0 6px 0;
+            padding: 7px;
+            font-size: 15px;
+        }
+
+        .stop-item .row2 {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 96px 52px 60px 30px;
-            gap: 5px;
-            align-items: center;
-            margin-bottom: 6px;
+            grid-template-columns: minmax(0, 1fr) 56px 66px 30px;
+            gap: 6px;
+            align-items: end;
         }
 
-        .stop-head {
-            font-size: 11px;
-            font-weight: 700;
-            opacity: 0.7;
-            margin-bottom: 4px;
-        }
-
-        .stop-row input {
+        .stop-item .row2 input {
             margin: 0;
             padding: 6px;
             font-size: 14px;
+        }
+
+        .cap {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            opacity: 0.65;
+            margin-bottom: 2px;
         }
 
         .form-container .pay-btn {
@@ -546,7 +553,6 @@
         <div class="panel-title">Scheduled stops</div>
         <div class="panel-subtitle">Tap Paid / Unpaid to switch. Paid stops are shown for reference only &mdash; they don't reduce the goal. Stops here apply to every line; use a line's own start time for anything specific to it.</div>
 
-        <div class="stop-head"><div>Description</div><div>Start</div><div>Min</div><div>Type</div><div></div></div>
         <div id="stops"></div>
 
         <button type="button" class="preset-btn" id="preset-default" style="margin-top:10px">Reset to default schedule</button>
@@ -919,14 +925,20 @@
 
     function renderStops() {
         document.getElementById("stops").innerHTML = state.stops.map(function (st, i) {
-            return '<div class="stop-row">' +
-                '<input type="text" value="' + esc(st.n) + '" data-k="n" data-i="' + i + '" aria-label="Description" />' +
-                '<input type="time" value="' + st.t + '" data-k="t" data-i="' + i + '" aria-label="Start time" />' +
-                '<input type="number" min="0" step="5" inputmode="numeric" value="' + st.m + '" data-k="m" data-i="' + i + '" aria-label="Minutes" />' +
+            return '<div class="stop-item">' +
+                '<input class="desc" type="text" value="' + esc(st.n) + '" data-k="n" data-i="' + i +
+                '" placeholder="Description" aria-label="Description" />' +
+                '<div class="row2">' +
+                '<div class="tf"><span class="cap">Start</span>' +
+                '<input type="time" value="' + st.t + '" data-k="t" data-i="' + i + '" aria-label="Start time" /></div>' +
+                '<div class="tf"><span class="cap">Min</span>' +
+                '<input type="number" min="0" step="5" inputmode="numeric" value="' + st.m +
+                '" data-k="m" data-i="' + i + '" aria-label="Minutes" /></div>' +
+                '<div class="tf"><span class="cap">Type</span>' +
                 '<button type="button" class="pay-btn' + (st.paid ? "" : " unpaid") + '" data-pay="' + i +
-                '" aria-label="Toggle paid or unpaid">' + (st.paid ? "Paid" : "Unpaid") + "</button>" +
+                '" aria-label="Toggle paid or unpaid">' + (st.paid ? "Paid" : "Unpaid") + "</button></div>" +
                 '<button type="button" class="stop-del" data-del="' + i + '" aria-label="Remove stop">&times;</button>' +
-                "</div>";
+                "</div></div>";
         }).join("");
     }
 
@@ -1224,7 +1236,7 @@
     document.getElementById("se").value = state.se;
     document.getElementById("uph-single").value = state.single || "";
     document.getElementById("job-single").value = state.singleJob || "";
-    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-29i";
+    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-29j";
     refresh();
 
     /* Keep the live standard current. Only the output area is rewritten, so this
