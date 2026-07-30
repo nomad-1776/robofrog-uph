@@ -325,6 +325,28 @@
             background: #fdecea;
         }
 
+        .form-container .danger-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff;
+            color: #b3261e;
+            border: 1px solid #f0c8c4;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .form-container .danger-btn:hover {
+            background: #fdecea;
+        }
+
+        .form-container .danger-btn.armed {
+            background: #b3261e;
+            border-color: #b3261e;
+            color: #fff;
+        }
+
         /* ===== Output ===== */
         .output-container {
             margin-top: 20px;
@@ -515,6 +537,13 @@
                 <div class="tbl-wrap"><table class="hrs" id="tbl"></table></div>
                 <div class="warn" id="warn"></div>
                 <div class="hint" id="hint"></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Reset</div>
+                <div class="panel-subtitle">Wipes saved entries and restores the default schedule. Takes two taps and can't be undone.</div>
+                <button type="button" class="danger-btn" id="reset-one">Reset</button>
+                <button type="button" class="danger-btn" id="reset-all" style="display:none">Reset all lines</button>
             </div>
         </div>
     </div>
@@ -721,6 +750,32 @@
 
     /* ===== Rendering ===== */
 
+    /* ===== Reset buttons ===== */
+
+    var armed = null, armTimer = null;
+
+    function resetLabel(id) {
+        if (id === "reset-all") return "Reset all lines";
+        return state.mode === "single" ? "Reset this job" : "Reset " + state.sel;
+    }
+
+    /* Two taps to fire: the first arms the button, and it disarms itself after a
+       few seconds so a stray tap can't sit waiting to wipe the shift. */
+    function setArmed(id) {
+        armed = id;
+        if (armTimer) { clearTimeout(armTimer); armTimer = null; }
+
+        ["reset-one", "reset-all"].forEach(function (x) {
+            var b = document.getElementById(x);
+            if (!b) return;
+            var on = x === id;
+            b.textContent = on ? "Tap again to confirm" : resetLabel(x);
+            b.classList.toggle("armed", on);
+        });
+
+        if (id) armTimer = setTimeout(function () { setArmed(null); }, 4000);
+    }
+
     function renderTabs() {
         document.querySelectorAll(".tab-btn[data-mode]").forEach(function (b) {
             var on = b.dataset.mode === state.mode;
@@ -733,6 +788,8 @@
         var wrap = document.getElementById("cfg-wrap");
         wrap.className = state.mode === "all" ? "cfgwrap nested" : "cfgwrap";
         document.getElementById("cfg-name").textContent = state.mode === "all" ? state.sel : "";
+        document.getElementById("reset-all").style.display = state.mode === "all" ? "" : "none";
+        setArmed(null);
     }
 
     /* Department tabs, then the lines in that department as pills. */
@@ -992,12 +1049,32 @@
             return;
         }
 
-        if (b.id === "stale-clear") {
-            markEdit();
-            if (state.mode === "all") state.lines[state.sel] = newCfg();
-            else state.single = newCfg();
-            renderCfg();
+        if (b.id === "reset-one" || b.id === "reset-all") {
+            if (armed !== b.id) { setArmed(b.id); return; }
+            setArmed(null);
+
+            if (b.id === "reset-all") {
+                state.lines = {};
+                state.selBy = {};
+            } else if (state.mode === "single") {
+                state.single = newCfg();
+            } else {
+                delete state.lines[state.sel];
+            }
+
+            renderTabs();
             renderPicker();
+            renderCfg();
+            calc();
+            return;
+        }
+
+        if (b.id === "stale-clear") {
+            if (state.mode === "all") delete state.lines[state.sel];
+            else state.single = newCfg();
+            renderTabs();
+            renderPicker();
+            renderCfg();
             calc();
             return;
         }
@@ -1040,7 +1117,7 @@
     /* ===== Init ===== */
 
     load();
-    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30b";
+    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30c";
     refresh();
 
     setInterval(calc, 20000);
