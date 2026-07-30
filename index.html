@@ -88,6 +88,7 @@
             line-height: 1.35;
         }
 
+        /* ===== Stamps ===== */
         .stamp {
             font-size: 12px;
             font-weight: 700;
@@ -107,26 +108,6 @@
             font-weight: 400;
         }
 
-        .lstamp {
-            font-size: 10px;
-            font-weight: 700;
-            opacity: 0.7;
-            margin-top: 5px;
-        }
-
-        .lstamp.old {
-            opacity: 1;
-            color: #a35c00;
-        }
-
-        .oldflag {
-            display: block;
-            font-size: 9px;
-            font-weight: 700;
-            color: #a35c00;
-            white-space: nowrap;
-        }
-
         .stale {
             border: 1px solid #f0d3a8;
             background: #fff4e5;
@@ -136,19 +117,6 @@
             font-size: 12px;
             line-height: 1.4;
             margin-bottom: 10px;
-        }
-
-        .dept-head {
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            opacity: 0.65;
-            margin: 12px 0 6px 0;
-        }
-
-        .dept-head:first-child {
-            margin-top: 0;
         }
 
         /* ===== Tabs / presets ===== */
@@ -198,93 +166,89 @@
             border-color: #45a049;
         }
 
-        /* ===== Per-line entry blocks ===== */
-        .line-block {
-            padding: 8px 0 9px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .line-block:last-child {
-            border-bottom: none;
-        }
-
-        .line-block .nm {
-            display: block;
-            font-size: 13px;
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
-
-        .line-block .fields {
+        /* ===== Line picker ===== */
+        .tabbar3 {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 92px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 6px;
-            align-items: center;
+            margin-bottom: 10px;
         }
 
-        .line-block input {
-            margin: 0;
-            padding: 7px;
-            font-size: 15px;
+        .tabbar3 .tab-btn {
+            font-size: 12px;
+            padding: 10px 4px;
         }
 
-        .line-block input.rate {
-            text-align: right;
+        .linebar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 4px;
         }
 
-        .times {
-            display: none;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 54px;
-            gap: 5px;
-            align-items: end;
-            margin-top: 6px;
-        }
-
-        .tf {
-            min-width: 0;
-        }
-
-        .times input {
-            font-size: 14px;
-            padding: 6px;
-        }
-
-        .form-container .tm-clear {
-            width: 100%;
+        .form-container .line-btn {
+            width: auto;
             margin-top: 0;
-            padding: 7px 0;
-            font-size: 10px;
+            padding: 9px 12px;
+            border-radius: 999px;
             font-weight: 800;
+            font-size: 13px;
             background: #fff;
-            color: #333;
+            color: #111;
             border: 1px solid #ddd;
-            border-radius: 8px;
         }
 
-        .form-container .tm-clear:hover {
+        .form-container .line-btn:hover {
             background: #f2f2f2;
         }
 
-        .jb {
-            display: block;
-            font-size: 10px;
-            font-weight: 400;
-            opacity: 0.75;
-            max-width: 92px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .form-container .line-btn:focus {
+            outline: 2px solid #4CAF50;
+            outline-offset: 2px;
         }
 
-        .wn {
-            display: block;
-            font-size: 9px;
-            font-weight: 400;
+        .form-container .line-btn.set {
+            border-color: #a5d6a7;
+            background: #f4fbf4;
+        }
+
+        .form-container .line-btn.old {
+            border-color: #f0d3a8;
+            background: #fff8ef;
             color: #a35c00;
-            white-space: nowrap;
         }
 
-        /* ===== Stop editor rows ===== */
+        .form-container .line-btn.active {
+            background: #4CAF50;
+            border-color: #4CAF50;
+            color: #fff;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.22);
+        }
+
+        .form-container .line-btn.active:hover {
+            background: #45a049;
+            border-color: #45a049;
+        }
+
+        /* ===== Config block ===== */
+        .cfgwrap.nested {
+            border-left: 3px solid #4CAF50;
+            padding-left: 9px;
+            margin: 8px 0 14px 0;
+        }
+
+        .cfg-name {
+            display: none;
+            font-size: 15px;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .cfgwrap.nested .cfg-name {
+            display: block;
+        }
+
+        /* ===== Stop editor ===== */
         .stop-item {
             padding: 8px 0 9px 0;
             border-bottom: 1px solid #eee;
@@ -320,6 +284,10 @@
             font-weight: 700;
             opacity: 0.65;
             margin-bottom: 2px;
+        }
+
+        .tf {
+            min-width: 0;
         }
 
         .form-container .pay-btn {
@@ -408,23 +376,6 @@
             margin-top: 3px;
         }
 
-        .nowmark {
-            color: #2e7d32;
-            font-weight: 800;
-        }
-
-        table.hrs tr.nowrow td {
-            font-weight: 800;
-        }
-
-        table.hrs tr.footnow td {
-            border-top: 2px solid #ccc;
-            border-bottom: none;
-            font-weight: 800;
-            background: #eef7ee;
-            color: #2e7d32;
-        }
-
         .tbl-wrap {
             width: 100%;
             overflow-x: auto;
@@ -444,7 +395,6 @@
             padding: 6px 5px;
             border-bottom: 2px solid #ccc;
             white-space: nowrap;
-            vertical-align: bottom;
         }
 
         table.hrs td {
@@ -463,6 +413,10 @@
             background: #fffbe6;
         }
 
+        table.hrs tr.nowrow td {
+            font-weight: 800;
+        }
+
         table.hrs tr.foot td {
             border-top: 2px solid #ccc;
             border-bottom: none;
@@ -470,22 +424,13 @@
             background: #f4f8f4;
         }
 
-        table.hrs tr.foot2 td {
-            border-top: none;
-            font-weight: 800;
-            background: #f4f8f4;
-        }
-
-        table.hrs td.off {
-            color: #bbb;
-        }
-
         .win {
             font-size: 11px;
             opacity: 0.85;
         }
 
-        .brkdot {
+        .brkdot,
+        .nowmark {
             color: #2e7d32;
             font-weight: 800;
         }
@@ -524,61 +469,54 @@
         <button type="button" class="tab-btn" role="tab" aria-selected="false" data-mode="all">All lines</button>
     </div>
 
-    <div id="stale" style="display:none"></div>
-    <div class="stamp" id="stamp"></div>
+    <div id="picker" style="display:none"></div>
 
-    <label for="ss">Shift start</label>
-    <input type="time" id="ss" value="16:15" />
+    <div id="cfg-home">
+        <div class="cfgwrap" id="cfg-wrap">
+            <div class="cfg-name" id="cfg-name"></div>
 
-    <label for="se">Shift end</label>
-    <input type="time" id="se" value="02:45" />
+            <div id="stale" style="display:none"></div>
+            <div class="stamp" id="stamp"></div>
 
-    <div class="panel" id="single-panel">
-        <div class="panel-title">Job</div>
-        <div class="panel-subtitle">Job number, work order, or any note that tells you what's running.</div>
-        <label for="job-single">Job / note</label>
-        <input type="text" id="job-single" placeholder="e.g. W123456 or grinder blend" />
-        <label for="uph-single">UPH</label>
-        <input type="number" id="uph-single" min="0" step="1" inputmode="numeric" placeholder="units per hour" />
-    </div>
+            <label for="f-job">Job / note</label>
+            <input type="text" id="f-job" placeholder="e.g. W123456 or grinder blend" />
 
-    <div class="panel" id="all-panel" style="display:none">
-        <div class="panel-title">Jobs by line</div>
-        <div class="panel-subtitle">Enter a UPH and the start / end fields appear. Leave those blank to use the shift times, or set them for a late start, a changeover, or an early finish.</div>
-        <div id="uph-list"></div>
-        <button type="button" class="preset-btn" id="clear-uph" style="margin-top:10px">Clear all jobs, rates &amp; times</button>
-    </div>
+            <label for="f-uph">UPH</label>
+            <input type="number" id="f-uph" min="0" step="1" inputmode="numeric" placeholder="units per hour" />
 
-    <div class="panel">
-        <div class="panel-title">Scheduled stops</div>
-        <div class="panel-subtitle">Tap Paid / Unpaid to switch. Paid stops are shown for reference only &mdash; they don't reduce the goal. Stops here apply to every line; use a line's own start time for anything specific to it.</div>
+            <label for="f-ss">Shift start</label>
+            <input type="time" id="f-ss" />
 
-        <div id="stops"></div>
+            <label for="f-se">Shift end</label>
+            <input type="time" id="f-se" />
 
-        <button type="button" class="preset-btn" id="preset-default" style="margin-top:10px">Reset to default schedule</button>
-        <button type="button" id="addstop">+ Add stop</button>
-    </div>
+            <div class="panel">
+                <div class="panel-title">Scheduled stops</div>
+                <div class="panel-subtitle">Tap Paid / Unpaid to switch. Paid stops are shown for reference only &mdash; they don't reduce the goal. Add an unpaid stop for a changeover or planned downtime.</div>
 
-    <div class="output-container">
-        <div class="output-row"><strong>Shift length</strong><span class="value" id="o-len">&mdash;</span></div>
-        <div class="output-row"><strong>Unpaid time</strong><span class="value" id="o-unpaid">&mdash;</span></div>
-        <div class="output-row"><strong>Expected run time</strong><span class="value" id="o-run">&mdash;</span></div>
+                <div id="stops"></div>
 
-        <div class="goal-box" id="goal-box">
-            <div class="label" id="o-goallabel">Total shift goal</div>
-            <div class="big" id="o-goal">&mdash;</div>
-            <div class="goal-sub" id="o-goalsub"></div>
+                <button type="button" class="preset-btn" id="preset-default" style="margin-top:10px">Reset to default schedule</button>
+                <button type="button" id="addstop">+ Add stop</button>
+                <button type="button" class="preset-btn" id="apply-all" style="margin-top:10px;display:none">Copy these times &amp; stops to every line</button>
+            </div>
+
+            <div class="output-container">
+                <div class="output-row"><strong>Shift length</strong><span class="value" id="o-len">&mdash;</span></div>
+                <div class="output-row"><strong>Unpaid time</strong><span class="value" id="o-unpaid">&mdash;</span></div>
+                <div class="output-row"><strong>Expected run time</strong><span class="value" id="o-run">&mdash;</span></div>
+
+                <div class="goal-box">
+                    <div class="label" id="o-goallabel">Total shift goal</div>
+                    <div class="big" id="o-goal">&mdash;</div>
+                    <div class="goal-sub" id="o-goalsub"></div>
+                </div>
+
+                <div class="tbl-wrap"><table class="hrs" id="tbl"></table></div>
+                <div class="warn" id="warn"></div>
+                <div class="hint" id="hint"></div>
+            </div>
         </div>
-
-        <div class="tabbar" id="view-tabs" style="display:none;margin-top:14px">
-            <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-view="hourly">Hourly</button>
-            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-view="cum">Cumulative</button>
-        </div>
-
-        <div class="tbl-wrap"><table class="hrs" id="tbl"></table></div>
-        <div class="warn" id="warn"></div>
-
-        <div class="hint" id="hint"></div>
     </div>
 
     <div class="rev" id="rev-stamp"></div>
@@ -586,7 +524,7 @@
 
 <script>
 (function () {
-    var LS = "uph.state.v3";
+    var LS = "uph.state.v4";
 
     var GROUPS = [
         { d: "Dry Spice", lines: ["DS2", "DS3", "DS4-Dessert", "DS4-Spice", "DS7", "DS8", "Pouch"] },
@@ -605,21 +543,26 @@
         ];
     }
 
+    /* One of these per line, plus one for single-line mode. Every line carries
+       its own shift window and stop list so a late start or a changeover on one
+       line never touches another. */
+    function newCfg() {
+        return { job: "", uph: 0, ss: "16:15", se: "02:45", stops: defaultStops(), at: 0 };
+    }
+
     var state = {
         mode: "single",
-        view: "hourly",
-        ss: "16:15",
-        se: "02:45",
-        single: 0,
-        singleJob: "",
-        uph: {},
-        job: {},
-        start: {},
-        end: {},
-        stops: defaultStops(),
-        savedAt: 0,
-        at: { single: 0, lines: {} }
+        dept: GROUPS[0].d,
+        sel: ALL_LINES[0],
+        selBy: {},
+        single: newCfg(),
+        lines: {}
     };
+
+    function groupOf(name) {
+        for (var i = 0; i < GROUPS.length; i++) if (GROUPS[i].d === name) return GROUPS[i];
+        return GROUPS[0];
+    }
 
     var edited = false, scope = null;
 
@@ -630,14 +573,24 @@
 
     function save() {
         if (edited) {
-            var now = Date.now();
-            state.savedAt = now;
-            if (scope === "single") state.at.single = now;
-            else if (scope) state.at.lines[scope] = now;
+            var c = cfg();
+            if (c) c.at = Date.now();
             edited = false;
             scope = null;
         }
         try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {}
+    }
+
+    function sane(c) {
+        var o = newCfg();
+        if (!c || typeof c !== "object") return o;
+        o.job = typeof c.job === "string" ? c.job : "";
+        o.uph = Math.max(0, parseFloat(c.uph) || 0);
+        o.ss = c.ss || o.ss;
+        o.se = c.se || o.se;
+        o.at = c.at || 0;
+        if (Array.isArray(c.stops)) o.stops = c.stops;
+        return o;
     }
 
     function load() {
@@ -645,21 +598,24 @@
             var s = JSON.parse(localStorage.getItem(LS) || "null");
             if (!s || typeof s !== "object") return;
             state.mode = s.mode === "all" ? "all" : "single";
-            state.view = s.view === "cum" ? "cum" : "hourly";
-            state.ss = s.ss || state.ss;
-            state.se = s.se || state.se;
-            state.single = parseFloat(s.single) || 0;
-            state.singleJob = typeof s.singleJob === "string" ? s.singleJob : "";
-            ["uph", "job", "start", "end"].forEach(function (k) {
-                if (s[k] && typeof s[k] === "object") state[k] = s[k];
-            });
-            if (Array.isArray(s.stops) && s.stops.length) state.stops = s.stops;
-            if (s.savedAt) state.savedAt = s.savedAt;
-            if (s.at && typeof s.at === "object") {
-                state.at.single = s.at.single || 0;
-                if (s.at.lines && typeof s.at.lines === "object") state.at.lines = s.at.lines;
+            if (s.dept && GROUPS.some(function (g) { return g.d === s.dept; })) state.dept = s.dept;
+            if (s.selBy && typeof s.selBy === "object") state.selBy = s.selBy;
+            if (s.sel && ALL_LINES.indexOf(s.sel) >= 0) state.sel = s.sel;
+            state.single = sane(s.single);
+            if (s.lines && typeof s.lines === "object") {
+                ALL_LINES.forEach(function (l) {
+                    if (s.lines[l]) state.lines[l] = sane(s.lines[l]);
+                });
             }
         } catch (e) {}
+    }
+
+    function cfg() {
+        if (state.mode === "single") return state.single;
+        var l = state.sel;
+        if (!l) return null;
+        if (!state.lines[l]) state.lines[l] = newCfg();
+        return state.lines[l];
     }
 
     function tm(s) {
@@ -677,50 +633,23 @@
 
     function num(x) { return Math.round(x).toLocaleString(); }
     function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); }
-    function rate(l) { return parseFloat(state.uph[l]) || 0; }
-
-    function activeLines() {
-        return ALL_LINES.filter(function (l) { return rate(l) > 0; });
-    }
 
     /* ===== Math ===== */
 
-    /* Offset of a clock time from shift start, in minutes. Returns -1 when the
-       time lands outside the shift window entirely. */
     function offsetOf(t, s, len) {
         var o = ((tm(t) - s) % 1440 + 1440) % 1440;
         return o >= len ? -1 : o;
     }
 
-    /* A line's own run window as offsets from shift start. */
-    function windowFor(l, s, len) {
-        var ls = 0, le = len, bad = false;
-
-        var st = (state.start[l] || "").trim();
-        if (st) {
-            var o = offsetOf(st, s, len);
-            if (o < 0) bad = true; else ls = o;
-        }
-
-        var en = (state.end[l] || "").trim();
-        if (en) {
-            var o2 = ((tm(en) - s) % 1440 + 1440) % 1440;
-            le = (o2 === 0 || o2 > len) ? len : o2;
-        }
-
-        if (le <= ls) bad = true;
-        return { ls: ls, le: le, bad: bad };
-    }
-
-    function build() {
-        var s = tm(state.ss), e = tm(state.se);
+    function build(c) {
+        var s = tm(c.ss), e = tm(c.se);
         var len = ((e - s) % 1440 + 1440) % 1440;
         if (len === 0) len = 1440;
 
         var flag = new Array(len).fill(1);
         var unpaid = 0, outside = 0, paidAt = [];
 
-        state.stops.forEach(function (st) {
+        c.stops.forEach(function (st) {
             var d = Math.max(0, parseInt(st.m, 10) || 0);
             if (d === 0) return;
             var off = offsetOf(st.t, s, len);
@@ -737,12 +666,8 @@
             var p = 0;
             for (var k = pos; k < pos + bl; k++) p += flag[k];
             rows.push({
-                i: rows.length + 1,
-                off: pos,
-                blk: bl,
-                st: s + pos,
-                en: s + pos + bl,
-                prod: p,
+                i: rows.length + 1, off: pos, blk: bl,
+                st: s + pos, en: s + pos + bl, prod: p,
                 paid: paidAt.some(function (b) { return b.off < pos + bl && b.end > pos; })
             });
             pos += bl;
@@ -751,46 +676,36 @@
         return { s: s, len: len, flag: flag, unpaid: unpaid, run: len - unpaid, rows: rows, outside: outside };
     }
 
-    /* Productive minutes for one line inside one hour block. */
-    function prodFor(d, row, w) {
-        var p = 0;
-        var from = Math.max(row.off, w.ls), to = Math.min(row.off + row.blk, w.le);
-        for (var k = from; k < to; k++) if (d.flag[k] === 1) p++;
+    function earnedBy(d, off) {
+        var p = 0, to = Math.min(d.len, off);
+        for (var k = 0; k < to; k++) if (d.flag[k] === 1) p++;
         return p;
     }
 
-    /* Productive minutes a line has earned by a given offset into the shift. */
-    function earnedBy(d, w, off) {
-        var p = 0, to = Math.min(w.le, off);
-        for (var k = w.ls; k < to; k++) if (d.flag[k] === 1) p++;
-        return p;
-    }
-
-    /* Where the wall clock sits relative to the shift. Since a shift can wrap
-       midnight, "outside the window" is split by whichever edge is closer. */
     function nowInfo(d) {
         var n = new Date();
         var mins = n.getHours() * 60 + n.getMinutes();
         var off = ((mins - d.s) % 1440 + 1440) % 1440;
         var label = fmt(mins);
-
         if (off < d.len) return { phase: "in", off: off, label: label };
-
         var after = off - d.len, before = 1440 - off;
         return after <= before
             ? { phase: "post", off: d.len, label: label }
             : { phase: "pre", off: 0, label: label };
     }
 
-    /* Which shift instance a moment belongs to, as the date of that shift's
-       start. Anything before today's start time counts as the previous shift,
-       so the after-midnight tail doesn't read as a new day. */
-    function anchorOf(ts) {
+    /* ===== Timestamps ===== */
+
+    function anchorOf(ts, ss) {
         var dt = new Date(ts);
         var mins = dt.getHours() * 60 + dt.getMinutes();
         var base = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
-        if (mins < tm(state.ss)) base.setDate(base.getDate() - 1);
+        if (mins < tm(ss)) base.setDate(base.getDate() - 1);
         return base.getTime();
+    }
+
+    function isStale(c) {
+        return !!(c && c.at) && anchorOf(c.at, c.ss) !== anchorOf(Date.now(), c.ss);
     }
 
     function stampText(ts) {
@@ -804,79 +719,6 @@
         }
     }
 
-    function isStale(ts) {
-        return !!ts && anchorOf(ts) !== anchorOf(Date.now());
-    }
-
-    /* Short form for the per-line stamps, which have very little room. */
-    function shortStamp(ts) {
-        try {
-            return new Date(ts).toLocaleString(undefined, {
-                weekday: "short", hour: "numeric", minute: "2-digit"
-            });
-        } catch (e) {
-            return stampText(ts);
-        }
-    }
-
-    function fillLineStamps() {
-        ALL_LINES.forEach(function (l) {
-            var el = document.querySelector('.line-block[data-l="' + l.replace(/"/g, '\\"') + '"] .lstamp');
-            if (!el) return;
-
-            var ts = state.at.lines[l] || 0;
-            var has = rate(l) > 0 || (state.job[l] || "").trim();
-
-            if (!ts || !has) {
-                el.className = "lstamp";
-                el.textContent = has ? "" : "\u2014 not set";
-                return;
-            }
-
-            if (isStale(ts)) {
-                el.className = "lstamp old";
-                el.textContent = "\u26a0 from an earlier shift \u2014 " + stampText(ts);
-            } else {
-                el.className = "lstamp";
-                el.textContent = "saved " + shortStamp(ts);
-            }
-        });
-    }
-
-    function renderStamp() {
-        var el = document.getElementById("stamp");
-        var sb = document.getElementById("stale");
-
-        var ts = state.mode === "single" ? state.at.single : state.savedAt;
-        var what = state.mode === "single" ? "This job" : "Entries";
-
-        if (!ts) {
-            el.className = "stamp none";
-            el.textContent = "Nothing saved yet.";
-            sb.style.display = "none";
-            return;
-        }
-
-        var when = stampText(ts);
-
-        if (isStale(ts)) {
-            el.className = "stamp none";
-            el.textContent = "";
-            el.style.display = "none";
-            sb.style.display = "";
-            sb.className = "stale";
-            sb.innerHTML = "<strong>" + what + " " + (state.mode === "single" ? "is" : "are") +
-                " from an earlier shift.</strong> Last saved " + when +
-                ". Check the jobs, rates, and times before trusting the numbers." +
-                '<button type="button" class="preset-btn" id="stale-clear" style="margin-top:8px">Clear jobs, rates &amp; times</button>';
-        } else {
-            sb.style.display = "none";
-            el.style.display = "";
-            el.className = "stamp";
-            el.textContent = what + " saved " + when;
-        }
-    }
-
     /* ===== Rendering ===== */
 
     function renderTabs() {
@@ -885,46 +727,57 @@
             b.classList.toggle("active", on);
             b.setAttribute("aria-selected", on ? "true" : "false");
         });
-        document.querySelectorAll(".tab-btn[data-view]").forEach(function (b) {
-            var on = b.dataset.view === state.view;
-            b.classList.toggle("active", on);
-            b.setAttribute("aria-selected", on ? "true" : "false");
-        });
-        document.getElementById("single-panel").style.display = state.mode === "single" ? "" : "none";
-        document.getElementById("all-panel").style.display = state.mode === "all" ? "" : "none";
-        document.getElementById("goal-box").style.display = state.mode === "single" ? "" : "none";
-        document.getElementById("view-tabs").style.display = state.mode === "all" ? "" : "none";
+        document.getElementById("picker").style.display = state.mode === "all" ? "" : "none";
+        document.getElementById("apply-all").style.display = state.mode === "all" ? "" : "none";
+
+        var wrap = document.getElementById("cfg-wrap");
+        wrap.className = state.mode === "all" ? "cfgwrap nested" : "cfgwrap";
+        document.getElementById("cfg-name").textContent = state.mode === "all" ? state.sel : "";
     }
 
-    function renderUphList() {
-        var h = "";
+    /* Department tabs, then the lines in that department as pills. */
+    function renderPicker() {
+        var pk = document.getElementById("picker");
+        if (state.mode !== "all") { pk.innerHTML = ""; return; }
+
+        var h = '<div class="tabbar3" role="tablist" aria-label="Departments">';
         GROUPS.forEach(function (g) {
-            h += '<div class="dept-head">' + g.d + "</div>";
-            g.lines.forEach(function (l) {
-                var v = state.uph[l], j = state.job[l] || "";
-                var el = esc(l);
-                h += '<div class="line-block" data-l="' + el + '"><span class="nm">' + l + "</span>" +
-                    '<div class="fields">' +
-                    '<input type="text" placeholder="Job / note" data-job="' + el + '" value="' + esc(j) +
-                    '" aria-label="Job for ' + el + '" />' +
-                    '<input type="number" class="rate" min="0" step="1" inputmode="numeric" placeholder="UPH" data-line="' +
-                    el + '" value="' + (v ? v : "") + '" aria-label="UPH for ' + el + '" />' +
-                    "</div>" +
-                    '<div class="times" style="display:' + (v ? "grid" : "none") + '">' +
-                    '<div class="tf"><span class="cap">Start</span><input type="time" data-start="' + el +
-                    '" value="' + esc(state.start[l] || "") + '" aria-label="Start time for ' + el + '" /></div>' +
-                    '<div class="tf"><span class="cap">End</span><input type="time" data-end="' + el +
-                    '" value="' + esc(state.end[l] || "") + '" aria-label="End time for ' + el + '" /></div>' +
-                    '<button type="button" class="tm-clear" data-clr="' + el + '">Shift</button>' +
-                    "</div>" +
-                    '<div class="lstamp"></div></div>';
-            });
+            var on = g.d === state.dept;
+            h += '<button type="button" class="tab-btn' + (on ? " active" : "") +
+                '" role="tab" aria-selected="' + (on ? "true" : "false") +
+                '" data-dept="' + esc(g.d) + '">' + esc(g.d) + "</button>";
         });
-        document.getElementById("uph-list").innerHTML = h;
+        h += '</div><div class="linebar" aria-label="Lines">';
+
+        groupOf(state.dept).lines.forEach(function (l) {
+            var c = state.lines[l];
+            var cls = "line-btn";
+            if (state.sel === l) cls += " active";
+            else if (c && isStale(c)) cls += " old";
+            else if (c && c.uph) cls += " set";
+            var flag = (c && isStale(c)) ? "\u26a0 " : "";
+            h += '<button type="button" class="' + cls + '" data-sel="' + esc(l) +
+                '" aria-pressed="' + (state.sel === l ? "true" : "false") + '">' + flag + esc(l) + "</button>";
+        });
+        h += "</div>";
+
+        pk.innerHTML = h;
+    }
+
+    function renderCfg() {
+        var c = cfg();
+        if (!c) return;
+        document.getElementById("f-job").value = c.job;
+        document.getElementById("f-uph").value = c.uph || "";
+        document.getElementById("f-ss").value = c.ss;
+        document.getElementById("f-se").value = c.se;
+        renderStops();
     }
 
     function renderStops() {
-        document.getElementById("stops").innerHTML = state.stops.map(function (st, i) {
+        var c = cfg();
+        if (!c) return;
+        document.getElementById("stops").innerHTML = c.stops.map(function (st, i) {
             return '<div class="stop-item">' +
                 '<input class="desc" type="text" value="' + esc(st.n) + '" data-k="n" data-i="' + i +
                 '" placeholder="Description" aria-label="Description" />' +
@@ -942,152 +795,112 @@
         }).join("");
     }
 
+    function renderStamp() {
+        var c = cfg();
+        var el = document.getElementById("stamp");
+        var sb = document.getElementById("stale");
+        var what = state.mode === "all" ? state.sel : "This job";
+
+        if (!c || !c.at) {
+            el.style.display = "";
+            el.className = "stamp none";
+            el.textContent = "Nothing saved yet.";
+            sb.style.display = "none";
+            return;
+        }
+
+        var when = stampText(c.at);
+
+        if (isStale(c)) {
+            el.style.display = "none";
+            sb.style.display = "";
+            sb.className = "stale";
+            sb.innerHTML = "<strong>" + esc(what) + " is from an earlier shift.</strong> Last saved " +
+                when + ". Check the job, rate, and times before trusting the numbers." +
+                '<button type="button" class="preset-btn" id="stale-clear" style="margin-top:8px">Clear this line</button>';
+        } else {
+            sb.style.display = "none";
+            el.style.display = "";
+            el.className = "stamp";
+            el.textContent = what + " saved " + when;
+        }
+    }
+
     function calc() {
-        var d = build();
+        var c = cfg();
+        if (!c) return;
+
+        var d = build(c);
+        var u = c.uph, jb = c.job.trim();
+        var now = nowInfo(d);
+        var total = d.run / 60 * u;
+        var earned = earnedBy(d, now.off) / 60 * u;
 
         document.getElementById("o-len").textContent = (d.len / 60).toFixed(2) + " hr (" + d.len + " min)";
         document.getElementById("o-unpaid").textContent = d.unpaid + " min";
         document.getElementById("o-run").textContent = (d.run / 60).toFixed(2) + " hr (" + d.run + " min)";
 
-        var h, anyPaid = d.rows.some(function (r) { return r.paid; });
-        var anyWindow = false, badLines = [];
-        var now = nowInfo(d);
+        var lbl = document.getElementById("o-goallabel");
+        var big = document.getElementById("o-goal");
+        var sub = document.getElementById("o-goalsub");
+        var suffix = jb ? " \u2014 " + jb : "";
 
-        if (state.mode === "single") {
-            var u = state.single, jb = state.singleJob.trim();
-            var total = d.run / 60 * u;
-            var fullWin = { ls: 0, le: d.len, bad: false };
-            var earned = earnedBy(d, fullWin, now.off) / 60 * u;
-            var suffix = jb ? " \u2014 " + jb : "";
-
-            var lbl = document.getElementById("o-goallabel");
-            var big = document.getElementById("o-goal");
-            var sub = document.getElementById("o-goalsub");
-
-            if (!u) {
-                lbl.textContent = "Total shift goal" + suffix;
-                big.textContent = "\u2014";
-                sub.textContent = "Enter a UPH to see the standard.";
-            } else if (now.phase === "pre") {
-                lbl.textContent = "Shift hasn't started" + suffix;
-                big.textContent = "\u2014";
-                sub.textContent = "Full shift goal " + num(total) + " \u00b7 starts " + fmt(d.s);
-            } else if (now.phase === "post") {
-                lbl.textContent = "Shift complete" + suffix;
-                big.textContent = num(total);
-                sub.textContent = "Full shift goal";
-            } else {
-                lbl.textContent = "Standard at " + now.label + suffix;
-                big.textContent = num(earned);
-                sub.textContent = "of " + num(total) + " for the shift \u00b7 " +
-                    Math.round(total ? (earned / total) * 100 : 0) + "%";
-            }
-
-            h = '<thead><tr><th class="l">Hr</th><th class="l">Window</th><th>Run</th><th>Goal</th><th>Cum.</th></tr></thead><tbody>';
-            var cum = 0;
-            d.rows.forEach(function (r) {
-                var g = (r.prod / 60) * u;
-                cum += g;
-                var isNow = now.phase === "in" && now.off >= r.off && now.off < r.off + r.blk;
-                h += '<tr class="' + (r.prod < r.blk ? "hasunpaid " : "") + (isNow ? "nowrow" : "") + '">' +
-                    '<td class="l">' + r.i + (isNow ? ' <span class="nowmark">&#9656;</span>' : "") + "</td>" +
-                    '<td class="l"><span class="win">' + fmt(r.st) + "&ndash;" + fmt(r.en) +
-                    (r.paid ? ' <span class="brkdot">&bull;</span>' : "") + "</span></td>" +
-                    "<td>" + r.prod + "</td><td>" + (u ? num(g) : "\u2014") + "</td><td>" + (u ? num(cum) : "\u2014") + "</td></tr>";
-            });
-            h += '<tr class="foot"><td class="l" colspan="2">Total</td><td>' + d.run + "</td><td>" +
-                (u ? num(cum) : "\u2014") + "</td><td></td></tr></tbody>";
+        if (!u) {
+            lbl.textContent = "Total shift goal" + suffix;
+            big.textContent = "\u2014";
+            sub.textContent = "Enter a UPH to see the standard.";
+        } else if (now.phase === "pre") {
+            lbl.textContent = "Shift hasn't started" + suffix;
+            big.textContent = "\u2014";
+            sub.textContent = "Full shift goal " + num(total) + " \u00b7 starts " + fmt(d.s);
+        } else if (now.phase === "post") {
+            lbl.textContent = "Shift complete" + suffix;
+            big.textContent = num(total);
+            sub.textContent = "Full shift goal";
         } else {
-            var lines = activeLines();
-            var wins = {}, runs = {};
-            lines.forEach(function (l) {
-                var w = windowFor(l, d.s, d.len);
-                wins[l] = w;
-                if (w.bad) badLines.push(l);
-                if ((state.start[l] || "").trim() || (state.end[l] || "").trim()) anyWindow = true;
-            });
-
-            h = '<thead><tr><th class="l">Hr</th><th class="l">Window</th>';
-            lines.forEach(function (l) {
-                var w = wins[l], note = "";
-                if (w.bad) note = '<span class="wn">off shift</span>';
-                else if (w.ls > 0 || w.le < d.len) note = '<span class="wn">' + fmt(d.s + w.ls) + "&ndash;" + fmt(d.s + w.le) + "</span>";
-                var j = (state.job[l] || "").trim();
-                h += "<th>" + esc(l) +
-                    (j ? '<span class="jb" title="' + esc(j) + '">' + esc(j) + "</span>" : "") + note +
-                    (isStale(state.at.lines[l]) ? '<span class="oldflag">&#9888; old entry</span>' : "") + "</th>";
-            });
-            h += "</tr></thead><tbody>";
-
-            var cums = {}, totals = {};
-            lines.forEach(function (l) { cums[l] = 0; totals[l] = 0; });
-
-            d.rows.forEach(function (r) {
-                var isNow = now.phase === "in" && now.off >= r.off && now.off < r.off + r.blk;
-                h += '<tr class="' + (r.prod < r.blk ? "hasunpaid " : "") + (isNow ? "nowrow" : "") + '">' +
-                    '<td class="l">' + r.i + (isNow ? ' <span class="nowmark">&#9656;</span>' : "") + "</td>" +
-                    '<td class="l"><span class="win">' + fmt(r.st) + "&ndash;" + fmt(r.en) +
-                    (r.paid ? ' <span class="brkdot">&bull;</span>' : "") + "</span></td>";
-                lines.forEach(function (l) {
-                    var w = wins[l];
-                    var p = w.bad ? 0 : prodFor(d, r, w);
-                    var g = (p / 60) * rate(l);
-                    cums[l] += g;
-                    totals[l] += p;
-                    h += p === 0
-                        ? '<td class="off">&mdash;</td>'
-                        : "<td>" + num(state.view === "cum" ? cums[l] : g) + "</td>";
-                });
-                h += "</tr>";
-            });
-
-            var nowLabel = now.phase === "in" ? "Now " + now.label
-                : now.phase === "post" ? "Shift end" : "Not started";
-            h += '<tr class="footnow"><td class="l" colspan="2">' + nowLabel + "</td>";
-            lines.forEach(function (l) {
-                var w = wins[l];
-                if (w.bad || now.phase === "pre") { h += "<td>&mdash;</td>"; return; }
-                var em = earnedBy(d, w, now.off);
-                h += "<td>" + (em ? num(em / 60 * rate(l)) : "&mdash;") + "</td>";
-            });
-            h += '</tr><tr class="foot2"><td class="l" colspan="2">Run hrs</td>';
-            lines.forEach(function (l) { h += "<td>" + (totals[l] / 60).toFixed(2) + "</td>"; });
-            h += '</tr><tr class="foot2"><td class="l" colspan="2">Shift goal</td>';
-            lines.forEach(function (l) { h += "<td>" + num(cums[l]) + "</td>"; });
-            h += "</tr></tbody>";
-
-            if (!lines.length) {
-                h = '<tbody><tr><td class="l" style="opacity:.7;padding:10px 0">Enter a UPH for at least one line.</td></tr></tbody>';
-            }
+            lbl.textContent = "Standard at " + now.label + suffix;
+            big.textContent = num(earned);
+            sub.textContent = "of " + num(total) + " for the shift \u00b7 " +
+                Math.round(total ? (earned / total) * 100 : 0) + "%";
         }
 
+        var h = '<thead><tr><th class="l">Hr</th><th class="l">Window</th><th>Run</th><th>Goal</th><th>Cum.</th></tr></thead><tbody>';
+        var cum = 0;
+        d.rows.forEach(function (r) {
+            var g = (r.prod / 60) * u;
+            cum += g;
+            var isNow = now.phase === "in" && now.off >= r.off && now.off < r.off + r.blk;
+            h += '<tr class="' + (r.prod < r.blk ? "hasunpaid " : "") + (isNow ? "nowrow" : "") + '">' +
+                '<td class="l">' + r.i + (isNow ? ' <span class="nowmark">&#9656;</span>' : "") + "</td>" +
+                '<td class="l"><span class="win">' + fmt(r.st) + "&ndash;" + fmt(r.en) +
+                (r.paid ? ' <span class="brkdot">&bull;</span>' : "") + "</span></td>" +
+                "<td>" + r.prod + "</td>" +
+                "<td>" + (u ? num(g) : "\u2014") + "</td>" +
+                "<td>" + (u ? num(cum) : "\u2014") + "</td></tr>";
+        });
+        h += '<tr class="foot"><td class="l" colspan="2">Total</td><td>' + d.run + "</td><td>" +
+            (u ? num(cum) : "\u2014") + "</td><td></td></tr></tbody>";
         document.getElementById("tbl").innerHTML = h;
 
-        var w = [];
-        if (d.outside) w.push(d.outside + " stop(s) start outside the shift window and were ignored.");
-        if (badLines.length) w.push(badLines.join(", ") + ": start/end falls outside the shift window, so nothing is counted.");
-        document.getElementById("warn").textContent = w.join(" ");
+        document.getElementById("warn").textContent = d.outside
+            ? d.outside + " stop(s) start outside this line's shift window and were ignored."
+            : "";
 
-        var hint = "Notes:<br>&bull; Paid breaks stay in the standard, so those hours keep a full goal" +
-            (anyPaid ? ' (marked <span class="brkdot">&bull;</span>)' : "") +
+        document.getElementById("hint").innerHTML = "Notes:" +
+            "<br>&bull; Paid breaks stay in the standard, so those hours keep a full goal" +
+            (d.rows.some(function (r) { return r.paid; }) ? ' (marked <span class="brkdot">&bull;</span>)' : "") +
             "<br>&bull; Highlighted rows lose minutes to unpaid time" +
             "<br>&bull; Lunch is entered as 30 min even though the stop runs 35" +
             "<br>&bull; A partial hour is prorated, not given a full goal";
-        if (state.mode === "all") {
-            hint += "<br>&bull; Hours follow the shift clock, so columns line up across lines" +
-                (anyWindow ? "; a dash means that line wasn't running yet" : "");
-        }
-        document.getElementById("hint").innerHTML = hint;
 
         renderStamp();
-        fillLineStamps();
         save();
     }
 
     function refresh() {
         renderTabs();
-        renderUphList();
-        renderStops();
+        renderPicker();
+        renderCfg();
         calc();
     }
 
@@ -1096,69 +909,95 @@
     document.addEventListener("click", function (ev) {
         var b = ev.target.closest("button");
         if (!b) return;
+        var c = cfg();
 
-        if (b.dataset.mode) { state.mode = b.dataset.mode; renderTabs(); calc(); return; }
-        if (b.dataset.view) { state.view = b.dataset.view; renderTabs(); calc(); return; }
+        if (b.dataset.mode) {
+            state.mode = b.dataset.mode;
+            if (state.mode === "all" && groupOf(state.dept).lines.indexOf(state.sel) < 0) {
+                state.sel = groupOf(state.dept).lines[0];
+            }
+            refresh();
+            return;
+        }
 
-        if (b.dataset.clr !== undefined) {
-            var l = b.dataset.clr;
-            markEdit(l);
-            delete state.start[l];
-            delete state.end[l];
-            var blk = document.querySelector('.line-block[data-l="' + l.replace(/"/g, '\\"') + '"]');
-            if (blk) blk.querySelectorAll('input[type="time"]').forEach(function (i) { i.value = ""; });
+        if (b.dataset.dept !== undefined) {
+            state.dept = b.dataset.dept;
+            var g = groupOf(state.dept);
+            var remembered = state.selBy[state.dept];
+            state.sel = (remembered && g.lines.indexOf(remembered) >= 0) ? remembered : g.lines[0];
+            renderTabs();
+            renderPicker();
+            renderCfg();
+            calc();
+            return;
+        }
+
+        if (b.dataset.sel !== undefined) {
+            state.sel = b.dataset.sel;
+            state.selBy[state.dept] = state.sel;
+            renderTabs();
+            renderPicker();
+            renderCfg();
             calc();
             return;
         }
 
         if (b.dataset.pay !== undefined) {
-            var pi = parseInt(b.dataset.pay, 10);
             markEdit();
-            state.stops[pi].paid = !state.stops[pi].paid;
+            var pi = parseInt(b.dataset.pay, 10);
+            c.stops[pi].paid = !c.stops[pi].paid;
             renderStops();
             calc();
             return;
         }
+
         if (b.dataset.del !== undefined) {
             markEdit();
-            state.stops.splice(parseInt(b.dataset.del, 10), 1);
+            c.stops.splice(parseInt(b.dataset.del, 10), 1);
             renderStops();
             calc();
             return;
         }
+
         if (b.id === "addstop") {
             markEdit();
-            state.stops.push({ n: "Changeover", t: "18:15", m: 0, paid: false });
+            c.stops.push({ n: "Changeover", t: c.ss, m: 0, paid: false });
             renderStops();
             calc();
             return;
         }
+
         if (b.id === "preset-default") {
             markEdit();
-            state.ss = "16:15";
-            state.se = "02:45";
-            document.getElementById("ss").value = state.ss;
-            document.getElementById("se").value = state.se;
-            state.stops = defaultStops();
-            renderStops();
+            c.ss = "16:15";
+            c.se = "02:45";
+            c.stops = defaultStops();
+            renderCfg();
             calc();
             return;
         }
-        if (b.id === "clear-uph" || b.id === "stale-clear") {
+
+        if (b.id === "apply-all") {
             markEdit();
-            state.uph = {};
-            state.job = {};
-            state.start = {};
-            state.end = {};
-            state.at.lines = {};
-            if (b.id === "stale-clear") {
-                state.single = 0;
-                state.singleJob = "";
-                state.at.single = 0;
-                document.getElementById("uph-single").value = "";
-                document.getElementById("job-single").value = "";
-            }
-            renderUphList();
+            ALL_LINES.forEach(function (l) {
+                if (!state.lines[l]) state.lines[l] = newCfg();
+                var t = state.lines[l];
+                if (t === c) return;
+                t.ss = c.ss;
+                t.se = c.se;
+                t.stops = JSON.parse(JSON.stringify(c.stops));
+            });
+            renderPicker();
+            calc();
+            return;
+        }
+
+        if (b.id === "stale-clear") {
+            markEdit();
+            if (state.mode === "all") state.lines[state.sel] = newCfg();
+            else state.single = newCfg();
+            renderCfg();
+            renderPicker();
             calc();
             return;
         }
@@ -1174,57 +1013,26 @@
     }, { passive: true });
 
     document.addEventListener("input", function (ev) {
-        var t = ev.target;
+        var t = ev.target, c = cfg();
+        if (!c) return;
+        markEdit();
 
-        var sc = null;
-        if (t.id === "uph-single" || t.id === "job-single") sc = "single";
-        else if (t.dataset.line !== undefined) sc = t.dataset.line;
-        else if (t.dataset.job !== undefined) sc = t.dataset.job;
-        else if (t.dataset.start !== undefined) sc = t.dataset.start;
-        else if (t.dataset.end !== undefined) sc = t.dataset.end;
-        markEdit(sc);
+        if (t.id === "f-job") { c.job = t.value; calc(); return; }
 
-        if (t.id === "ss") { state.ss = t.value; calc(); return; }
-        if (t.id === "se") { state.se = t.value; calc(); return; }
-        if (t.id === "uph-single") { state.single = Math.max(0, parseFloat(t.value) || 0); calc(); return; }
-        if (t.id === "job-single") { state.singleJob = t.value; calc(); return; }
-
-        if (t.dataset.job !== undefined) {
-            if (t.value.trim()) state.job[t.dataset.job] = t.value; else delete state.job[t.dataset.job];
+        if (t.id === "f-uph") {
+            c.uph = Math.max(0, parseFloat(t.value) || 0);
             calc();
             return;
         }
 
-        if (t.dataset.start !== undefined) {
-            if (t.value) state.start[t.dataset.start] = t.value; else delete state.start[t.dataset.start];
-            calc();
-            return;
-        }
-
-        if (t.dataset.end !== undefined) {
-            if (t.value) state.end[t.dataset.end] = t.value; else delete state.end[t.dataset.end];
-            calc();
-            return;
-        }
-
-        if (t.dataset.line !== undefined) {
-            var v = Math.max(0, parseFloat(t.value) || 0);
-            if (v) state.uph[t.dataset.line] = v; else delete state.uph[t.dataset.line];
-            /* Reveal the time fields without re-rendering, which would steal focus. */
-            var block = t.closest(".line-block");
-            if (block) {
-                var tw = block.querySelector(".times");
-                if (tw) tw.style.display = v ? "grid" : "none";
-            }
-            calc();
-            return;
-        }
+        if (t.id === "f-ss") { c.ss = t.value; calc(); return; }
+        if (t.id === "f-se") { c.se = t.value; calc(); return; }
 
         if (t.dataset.k !== undefined && t.dataset.i !== undefined) {
             var i = parseInt(t.dataset.i, 10);
-            if (!state.stops[i]) return;
-            if (t.dataset.k === "m") state.stops[i].m = Math.max(0, parseInt(t.value, 10) || 0);
-            else state.stops[i][t.dataset.k] = t.value;
+            if (!c.stops[i]) return;
+            if (t.dataset.k === "m") c.stops[i].m = Math.max(0, parseInt(t.value, 10) || 0);
+            else c.stops[i][t.dataset.k] = t.value;
             calc();
         }
     });
@@ -1232,15 +1040,9 @@
     /* ===== Init ===== */
 
     load();
-    document.getElementById("ss").value = state.ss;
-    document.getElementById("se").value = state.se;
-    document.getElementById("uph-single").value = state.single || "";
-    document.getElementById("job-single").value = state.singleJob || "";
-    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-29j";
+    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30b";
     refresh();
 
-    /* Keep the live standard current. Only the output area is rewritten, so this
-       never disturbs a field being typed in. */
     setInterval(calc, 20000);
 })();
 </script>
