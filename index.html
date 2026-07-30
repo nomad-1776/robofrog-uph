@@ -88,6 +88,56 @@
             line-height: 1.35;
         }
 
+        .stamp {
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            padding: 8px 10px;
+            border: 1px solid #cfe6cf;
+            border-radius: 10px;
+            background: #eef7ee;
+            color: #2e7d32;
+            margin: 0 0 10px 0;
+        }
+
+        .stamp.none {
+            border-color: #ddd;
+            background: #f2f2f2;
+            color: #555;
+            font-weight: 400;
+        }
+
+        .lstamp {
+            font-size: 10px;
+            font-weight: 700;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .lstamp.old {
+            opacity: 1;
+            color: #a35c00;
+        }
+
+        .oldflag {
+            display: block;
+            font-size: 9px;
+            font-weight: 700;
+            color: #a35c00;
+            white-space: nowrap;
+        }
+
+        .stale {
+            border: 1px solid #f0d3a8;
+            background: #fff4e5;
+            color: #a35c00;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 12px;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
         .dept-head {
             font-size: 11px;
             font-weight: 800;
@@ -467,6 +517,9 @@
         <button type="button" class="tab-btn" role="tab" aria-selected="false" data-mode="all">All lines</button>
     </div>
 
+    <div id="stale" style="display:none"></div>
+    <div class="stamp" id="stamp"></div>
+
     <label for="ss">Shift start</label>
     <input type="time" id="ss" value="16:15" />
 
@@ -484,7 +537,7 @@
 
     <div class="panel" id="all-panel" style="display:none">
         <div class="panel-title">Jobs by line</div>
-        <div class="panel-subtitle">Enter a UPH and the start / end fields appear. Leave those blank to use the shift times, or set them for a late start, a changeover, or an early finish. Saved on this device.</div>
+        <div class="panel-subtitle">Enter a UPH and the start / end fields appear. Leave those blank to use the shift times, or set them for a late start, a changeover, or an early finish.</div>
         <div id="uph-list"></div>
         <button type="button" class="preset-btn" id="clear-uph" style="margin-top:10px">Clear all jobs, rates &amp; times</button>
     </div>
@@ -557,10 +610,29 @@
         job: {},
         start: {},
         end: {},
-        stops: defaultStops()
+        stops: defaultStops(),
+        savedAt: 0,
+        at: { single: 0, lines: {} }
     };
 
-    function save() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} }
+    var edited = false, scope = null;
+
+    function markEdit(sc) {
+        edited = true;
+        scope = sc === undefined ? null : sc;
+    }
+
+    function save() {
+        if (edited) {
+            var now = Date.now();
+            state.savedAt = now;
+            if (scope === "single") state.at.single = now;
+            else if (scope) state.at.lines[scope] = now;
+            edited = false;
+            scope = null;
+        }
+        try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {}
+    }
 
     function load() {
         try {
@@ -576,6 +648,11 @@
                 if (s[k] && typeof s[k] === "object") state[k] = s[k];
             });
             if (Array.isArray(s.stops) && s.stops.length) state.stops = s.stops;
+            if (s.savedAt) state.savedAt = s.savedAt;
+            if (s.at && typeof s.at === "object") {
+                state.at.single = s.at.single || 0;
+                if (s.at.lines && typeof s.at.lines === "object") state.at.lines = s.at.lines;
+            }
         } catch (e) {}
     }
 
@@ -699,6 +776,101 @@
             : { phase: "pre", off: 0, label: label };
     }
 
+    /* Which shift instance a moment belongs to, as the date of that shift's
+       start. Anything before today's start time counts as the previous shift,
+       so the after-midnight tail doesn't read as a new day. */
+    function anchorOf(ts) {
+        var dt = new Date(ts);
+        var mins = dt.getHours() * 60 + dt.getMinutes();
+        var base = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+        if (mins < tm(state.ss)) base.setDate(base.getDate() - 1);
+        return base.getTime();
+    }
+
+    function stampText(ts) {
+        try {
+            return new Date(ts).toLocaleString(undefined, {
+                weekday: "short", month: "short", day: "numeric",
+                hour: "numeric", minute: "2-digit"
+            });
+        } catch (e) {
+            return new Date(ts).toString();
+        }
+    }
+
+    function isStale(ts) {
+        return !!ts && anchorOf(ts) !== anchorOf(Date.now());
+    }
+
+    /* Short form for the per-line stamps, which have very little room. */
+    function shortStamp(ts) {
+        try {
+            return new Date(ts).toLocaleString(undefined, {
+                weekday: "short", hour: "numeric", minute: "2-digit"
+            });
+        } catch (e) {
+            return stampText(ts);
+        }
+    }
+
+    function fillLineStamps() {
+        ALL_LINES.forEach(function (l) {
+            var el = document.querySelector('.line-block[data-l="' + l.replace(/"/g, '\\"') + '"] .lstamp');
+            if (!el) return;
+
+            var ts = state.at.lines[l] || 0;
+            var has = rate(l) > 0 || (state.job[l] || "").trim();
+
+            if (!ts || !has) {
+                el.className = "lstamp";
+                el.textContent = has ? "" : "\u2014 not set";
+                return;
+            }
+
+            if (isStale(ts)) {
+                el.className = "lstamp old";
+                el.textContent = "\u26a0 from an earlier shift \u2014 " + stampText(ts);
+            } else {
+                el.className = "lstamp";
+                el.textContent = "saved " + shortStamp(ts);
+            }
+        });
+    }
+
+    function renderStamp() {
+        var el = document.getElementById("stamp");
+        var sb = document.getElementById("stale");
+
+        var ts = state.mode === "single" ? state.at.single : state.savedAt;
+        var what = state.mode === "single" ? "This job" : "Entries";
+
+        if (!ts) {
+            el.className = "stamp none";
+            el.textContent = "Nothing saved yet.";
+            sb.style.display = "none";
+            return;
+        }
+
+        var when = stampText(ts);
+
+        if (isStale(ts)) {
+            el.className = "stamp none";
+            el.textContent = "";
+            el.style.display = "none";
+            sb.style.display = "";
+            sb.className = "stale";
+            sb.innerHTML = "<strong>" + what + " " + (state.mode === "single" ? "is" : "are") +
+                " from an earlier shift.</strong> Last saved " + when +
+                ". Check the jobs, rates, and times before trusting the numbers." +
+                '<button type="button" class="preset-btn" id="stale-clear" style="margin-top:8px">Clear jobs, rates &amp; times</button>';
+        } else {
+            sb.style.display = "none";
+            el.style.display = "";
+            el.className = "stamp";
+            el.textContent = what + " saved " + when;
+        }
+    }
+
     /* ===== Rendering ===== */
 
     function renderTabs() {
@@ -738,7 +910,8 @@
                     '<div class="tf"><span class="cap">End</span><input type="time" data-end="' + el +
                     '" value="' + esc(state.end[l] || "") + '" aria-label="End time for ' + el + '" /></div>' +
                     '<button type="button" class="tm-clear" data-clr="' + el + '">Shift</button>' +
-                    "</div></div>";
+                    "</div>" +
+                    '<div class="lstamp"></div></div>';
             });
         });
         document.getElementById("uph-list").innerHTML = h;
@@ -829,7 +1002,8 @@
                 else if (w.ls > 0 || w.le < d.len) note = '<span class="wn">' + fmt(d.s + w.ls) + "&ndash;" + fmt(d.s + w.le) + "</span>";
                 var j = (state.job[l] || "").trim();
                 h += "<th>" + esc(l) +
-                    (j ? '<span class="jb" title="' + esc(j) + '">' + esc(j) + "</span>" : "") + note + "</th>";
+                    (j ? '<span class="jb" title="' + esc(j) + '">' + esc(j) + "</span>" : "") + note +
+                    (isStale(state.at.lines[l]) ? '<span class="oldflag">&#9888; old entry</span>' : "") + "</th>";
             });
             h += "</tr></thead><tbody>";
 
@@ -893,6 +1067,8 @@
         }
         document.getElementById("hint").innerHTML = hint;
 
+        renderStamp();
+        fillLineStamps();
         save();
     }
 
@@ -914,6 +1090,7 @@
 
         if (b.dataset.clr !== undefined) {
             var l = b.dataset.clr;
+            markEdit(l);
             delete state.start[l];
             delete state.end[l];
             var blk = document.querySelector('.line-block[data-l="' + l.replace(/"/g, '\\"') + '"]');
@@ -924,24 +1101,28 @@
 
         if (b.dataset.pay !== undefined) {
             var pi = parseInt(b.dataset.pay, 10);
+            markEdit();
             state.stops[pi].paid = !state.stops[pi].paid;
             renderStops();
             calc();
             return;
         }
         if (b.dataset.del !== undefined) {
+            markEdit();
             state.stops.splice(parseInt(b.dataset.del, 10), 1);
             renderStops();
             calc();
             return;
         }
         if (b.id === "addstop") {
+            markEdit();
             state.stops.push({ n: "Changeover", t: "18:15", m: 0, paid: false });
             renderStops();
             calc();
             return;
         }
         if (b.id === "preset-default") {
+            markEdit();
             state.ss = "16:15";
             state.se = "02:45";
             document.getElementById("ss").value = state.ss;
@@ -951,11 +1132,20 @@
             calc();
             return;
         }
-        if (b.id === "clear-uph") {
+        if (b.id === "clear-uph" || b.id === "stale-clear") {
+            markEdit();
             state.uph = {};
             state.job = {};
             state.start = {};
             state.end = {};
+            state.at.lines = {};
+            if (b.id === "stale-clear") {
+                state.single = 0;
+                state.singleJob = "";
+                state.at.single = 0;
+                document.getElementById("uph-single").value = "";
+                document.getElementById("job-single").value = "";
+            }
             renderUphList();
             calc();
             return;
@@ -973,6 +1163,14 @@
 
     document.addEventListener("input", function (ev) {
         var t = ev.target;
+
+        var sc = null;
+        if (t.id === "uph-single" || t.id === "job-single") sc = "single";
+        else if (t.dataset.line !== undefined) sc = t.dataset.line;
+        else if (t.dataset.job !== undefined) sc = t.dataset.job;
+        else if (t.dataset.start !== undefined) sc = t.dataset.start;
+        else if (t.dataset.end !== undefined) sc = t.dataset.end;
+        markEdit(sc);
 
         if (t.id === "ss") { state.ss = t.value; calc(); return; }
         if (t.id === "se") { state.se = t.value; calc(); return; }
@@ -1026,7 +1224,7 @@
     document.getElementById("se").value = state.se;
     document.getElementById("uph-single").value = state.single || "";
     document.getElementById("job-single").value = state.singleJob || "";
-    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-29f";
+    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-29i";
     refresh();
 
     /* Keep the live standard current. Only the output area is rewritten, so this
