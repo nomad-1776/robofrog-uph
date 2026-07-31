@@ -558,7 +558,7 @@
     var GROUPS = [
         { d: "Dry Spice", lines: ["DS2", "DS3", "DS4-Dessert", "DS4-Spice", "DS7", "DS8", "Pouch"] },
         { d: "Handwork", lines: ["2-3", "2-4"] },
-        { d: "Extracts", lines: ["Express", "811", "Liquid", "XL Cream"] }
+        { d: "Extracts", lines: ["Express", "811", "Liquid", "XL", "Cream"] }
     ];
 
     var ALL_LINES = GROUPS.reduce(function (a, g) { return a.concat(g.lines); }, []);
@@ -1117,7 +1117,7 @@
     /* ===== Init ===== */
 
     load();
-    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30c";
+    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30d";
     refresh();
 
     setInterval(calc, 20000);
