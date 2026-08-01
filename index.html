@@ -347,6 +347,65 @@
             color: #fff;
         }
 
+        .rate-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 84px;
+            gap: 10px;
+            align-items: start;
+        }
+
+        .rate-row .fld {
+            min-width: 0;
+        }
+
+        .rate-row input {
+            margin: 8px 0 0 0;
+        }
+
+        .frac {
+            margin-top: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fff;
+            padding: 3px 6px;
+        }
+
+        .frac.set {
+            border-color: #f0d3a8;
+            background: #fff8ef;
+        }
+
+        .form-container .frac input {
+            width: 100%;
+            margin: 0;
+            padding: 3px 0;
+            border: none;
+            border-radius: 0;
+            text-align: center;
+            font-size: 17px;
+            font-weight: 700;
+            background: transparent;
+        }
+
+        .form-container .frac input:focus {
+            outline: 2px solid #4CAF50;
+            outline-offset: 1px;
+            border-radius: 3px;
+        }
+
+        .frac hr {
+            border: none;
+            border-top: 2px solid #333;
+            margin: 1px 0;
+        }
+
+        .eff {
+            font-size: 12px;
+            font-weight: 700;
+            color: #a35c00;
+            margin: 6px 0 0 0;
+        }
+
         /* ===== Output ===== */
         .output-container {
             margin-top: 20px;
@@ -503,8 +562,23 @@
             <label for="f-job">Job / note</label>
             <input type="text" id="f-job" placeholder="e.g. W123456 or grinder blend" />
 
-            <label for="f-uph">UPH</label>
-            <input type="number" id="f-uph" min="0" step="1" inputmode="numeric" placeholder="units per hour" />
+            <div class="rate-row">
+                <div class="fld">
+                    <label for="f-uph">UPH</label>
+                    <input type="number" id="f-uph" min="0" step="1" inputmode="numeric" placeholder="units per hour" />
+                </div>
+                <div class="fld">
+                    <label for="f-crew-a">Crew</label>
+                    <div class="frac" id="frac-box">
+                        <input type="number" id="f-crew-a" min="0" step="1" inputmode="numeric"
+                               aria-label="Crew on hand" title="People on hand" />
+                        <hr />
+                        <input type="number" id="f-crew-p" min="1" step="1" inputmode="numeric"
+                               aria-label="Crew the rate assumes" title="People the UPH assumes" />
+                    </div>
+                </div>
+            </div>
+            <div class="eff" id="o-eff"></div>
 
             <label for="f-ss">Shift start</label>
             <input type="time" id="f-ss" />
@@ -576,7 +650,17 @@
        its own shift window and stop list so a late start or a changeover on one
        line never touches another. */
     function newCfg() {
-        return { job: "", uph: 0, ss: "16:15", se: "02:45", stops: defaultStops(), at: 0 };
+        return {
+            job: "", uph: 0, ca: 1, cp: 1,
+            ss: "16:15", se: "02:45", stops: defaultStops(), at: 0
+        };
+    }
+
+    /* The rate actually expected, after scaling for a short crew. */
+    function effUph(c) {
+        var p = Math.max(1, c.cp || 1);
+        var a = Math.max(0, c.ca === 0 ? 0 : (c.ca || 1));
+        return c.uph * (a / p);
     }
 
     var state = {
@@ -615,6 +699,8 @@
         if (!c || typeof c !== "object") return o;
         o.job = typeof c.job === "string" ? c.job : "";
         o.uph = Math.max(0, parseFloat(c.uph) || 0);
+        o.ca = c.ca === 0 ? 0 : Math.max(0, parseFloat(c.ca) || 1);
+        o.cp = Math.max(1, parseFloat(c.cp) || 1);
         o.ss = c.ss || o.ss;
         o.se = c.se || o.se;
         o.at = c.at || 0;
@@ -826,6 +912,8 @@
         if (!c) return;
         document.getElementById("f-job").value = c.job;
         document.getElementById("f-uph").value = c.uph || "";
+        document.getElementById("f-crew-a").value = c.ca;
+        document.getElementById("f-crew-p").value = c.cp;
         document.getElementById("f-ss").value = c.ss;
         document.getElementById("f-se").value = c.se;
         renderStops();
@@ -888,10 +976,17 @@
         if (!c) return;
 
         var d = build(c);
-        var u = c.uph, jb = c.job.trim();
+        var u = effUph(c), jb = c.job.trim();
+        var short = c.uph > 0 && u !== c.uph;
         var now = nowInfo(d);
         var total = d.run / 60 * u;
         var earned = earnedBy(d, now.off) / 60 * u;
+
+        document.getElementById("frac-box").className = short ? "frac set" : "frac";
+        document.getElementById("o-eff").textContent = short
+            ? "Crew " + c.ca + "/" + c.cp + " \u2014 standard adjusted to " +
+              num(u) + " UPH (from " + num(c.uph) + ")"
+            : "";
 
         document.getElementById("o-len").textContent = (d.len / 60).toFixed(2) + " hr (" + d.len + " min)";
         document.getElementById("o-unpaid").textContent = d.unpaid + " min";
@@ -902,7 +997,7 @@
         var sub = document.getElementById("o-goalsub");
         var suffix = jb ? " \u2014 " + jb : "";
 
-        if (!u) {
+        if (!c.uph) {
             lbl.textContent = "Total shift goal" + suffix;
             big.textContent = "\u2014";
             sub.textContent = "Enter a UPH to see the standard.";
@@ -932,11 +1027,11 @@
                 '<td class="l"><span class="win">' + fmt(r.st) + "&ndash;" + fmt(r.en) +
                 (r.paid ? ' <span class="brkdot">&bull;</span>' : "") + "</span></td>" +
                 "<td>" + r.prod + "</td>" +
-                "<td>" + (u ? num(g) : "\u2014") + "</td>" +
-                "<td>" + (u ? num(cum) : "\u2014") + "</td></tr>";
+                "<td>" + (c.uph ? num(g) : "\u2014") + "</td>" +
+                "<td>" + (c.uph ? num(cum) : "\u2014") + "</td></tr>";
         });
         h += '<tr class="foot"><td class="l" colspan="2">Total</td><td>' + d.run + "</td><td>" +
-            (u ? num(cum) : "\u2014") + "</td><td></td></tr></tbody>";
+            (c.uph ? num(cum) : "\u2014") + "</td><td></td></tr></tbody>";
         document.getElementById("tbl").innerHTML = h;
 
         document.getElementById("warn").textContent = d.outside
@@ -944,6 +1039,8 @@
             : "";
 
         document.getElementById("hint").innerHTML = "Notes:" +
+            (short ? "<br>&bull; Crew " + c.ca + "/" + c.cp + " scales the rate; " +
+                num(c.uph / Math.max(1, c.cp)) + " UPH per person" : "") +
             "<br>&bull; Paid breaks stay in the standard, so those hours keep a full goal" +
             (d.rows.some(function (r) { return r.paid; }) ? ' (marked <span class="brkdot">&bull;</span>)' : "") +
             "<br>&bull; Highlighted rows lose minutes to unpaid time" +
@@ -1102,6 +1199,18 @@
             return;
         }
 
+        if (t.id === "f-crew-a") {
+            c.ca = t.value === "" ? 1 : Math.max(0, parseFloat(t.value) || 0);
+            calc();
+            return;
+        }
+
+        if (t.id === "f-crew-p") {
+            c.cp = Math.max(1, parseFloat(t.value) || 1);
+            calc();
+            return;
+        }
+
         if (t.id === "f-ss") { c.ss = t.value; calc(); return; }
         if (t.id === "f-se") { c.se = t.value; calc(); return; }
 
@@ -1117,7 +1226,7 @@
     /* ===== Init ===== */
 
     load();
-    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30d";
+    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30e";
     refresh();
 
     setInterval(calc, 20000);
