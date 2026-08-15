@@ -456,23 +456,41 @@
             justify-content: space-between;
             gap: 8px;
             margin-top: 12px;
-            padding: 9px 10px;
-            background: #fff;
-            color: #111;
-            border: 1px solid #ddd;
+            padding: 10px;
+            background: #fff4e5;
+            color: #8a4d00;
+            border: 1px solid #e8a33d;
+            border-left: 5px solid #e8a33d;
             border-radius: 10px;
-            font-size: 13px;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 800;
             text-align: left;
         }
 
         .form-container .disc:hover {
-            background: #f2f2f2;
+            background: #ffecd2;
+        }
+
+        .form-container .disc:focus {
+            outline: 2px solid #4CAF50;
+            outline-offset: 2px;
+        }
+
+        .form-container .disc.shut {
+            background: #4CAF50;
+            border: 1px solid #4CAF50;
+            color: #fff;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.22);
+        }
+
+        .form-container .disc.shut:hover {
+            background: #45a049;
+            border-color: #45a049;
         }
 
         .disc .caret {
             font-size: 11px;
-            opacity: 0.7;
+            opacity: 0.8;
         }
 
         table.hrs.collapsed thead,
@@ -782,15 +800,19 @@
             <label for="f-se">Shift end</label>
             <input type="time" id="f-se" />
 
-            <div class="panel">
-                <div class="panel-title">Scheduled stops</div>
-                <div class="panel-subtitle">Tap Paid / Unpaid to switch. Paid stops are shown for reference only &mdash; they don't reduce the goal. Add an unpaid stop for a changeover or planned downtime.</div>
+            <button type="button" class="disc" id="disc-stops" aria-expanded="false" aria-controls="stops-body">
+                <span id="stops-label">Scheduled stops</span><span class="caret" id="stops-caret">&#9660;</span>
+            </button>
+            <div id="stops-body" style="display:none">
+                <div class="panel" style="margin-top:8px">
+                    <div class="panel-subtitle">Tap Paid / Unpaid to switch. Paid stops are shown for reference only &mdash; they don't reduce the goal. Add an unpaid stop for a changeover or planned downtime.</div>
 
-                <div id="stops"></div>
+                    <div id="stops"></div>
 
-                <button type="button" class="preset-btn" id="preset-default" style="margin-top:10px">Reset to default schedule</button>
-                <button type="button" id="addstop">+ Add stop</button>
-                <button type="button" class="preset-btn" id="apply-all" style="margin-top:10px;display:none">Copy these times &amp; stops to every line</button>
+                    <button type="button" class="preset-btn" id="preset-default" style="margin-top:10px">Reset to default schedule</button>
+                    <button type="button" id="addstop">+ Add stop</button>
+                    <button type="button" class="preset-btn" id="apply-all" style="margin-top:10px;display:none">Copy these times &amp; stops to every line</button>
+                </div>
             </div>
 
             <div class="output-container">
@@ -895,6 +917,7 @@
         selBy: {},
         showHours: false,
         showPpm: false,
+        showStops: false,
         single: newCfg(),
         lines: {}
     };
@@ -951,6 +974,7 @@
             if (s.selBy && typeof s.selBy === "object") state.selBy = s.selBy;
             state.showHours = s.showHours === true;
             state.showPpm = s.showPpm === true;
+            state.showStops = s.showStops === true;
             if (s.sel && ALL_LINES.indexOf(s.sel) >= 0) state.sel = s.sel;
             state.single = sane(s.single);
             if (s.lines && typeof s.lines === "object") {
@@ -1354,6 +1378,7 @@
         var tblEl = document.getElementById("tbl");
         tblEl.className = state.showHours ? "hrs" : "hrs collapsed";
         var disc = document.getElementById("disc-hours");
+        disc.className = state.showHours ? "disc" : "disc shut";
         disc.setAttribute("aria-expanded", state.showHours ? "true" : "false");
         document.getElementById("disc-caret").innerHTML = state.showHours ? "&#9650;" : "&#9660;";
         document.getElementById("disc-label").textContent =
@@ -1392,9 +1417,21 @@
                 " \u00b7 " + (diff >= 0 ? "+" : "\u2212") + num(Math.abs(diff)) + " units";
         }
 
+        document.getElementById("stops-body").style.display = state.showStops ? "" : "none";
+        var dstops = document.getElementById("disc-stops");
+        dstops.className = state.showStops ? "disc" : "disc shut";
+        dstops.setAttribute("aria-expanded", state.showStops ? "true" : "false");
+        document.getElementById("stops-caret").innerHTML = state.showStops ? "&#9650;" : "&#9660;";
+        document.getElementById("stops-label").textContent =
+            (state.showStops ? "Hide" : "Show") + " scheduled stops \u00b7 " +
+            c.stops.length + (c.stops.length === 1 ? " stop" : " stops") +
+            (d.unpaid ? " \u00b7 " + d.unpaid + " min unpaid" : " \u00b7 none unpaid");
+
         var pb = document.getElementById("ppm-body");
         pb.style.display = state.showPpm ? "" : "none";
-        document.getElementById("disc-ppm").setAttribute("aria-expanded", state.showPpm ? "true" : "false");
+        var dppm = document.getElementById("disc-ppm");
+        dppm.className = state.showPpm ? "disc" : "disc shut";
+        dppm.setAttribute("aria-expanded", state.showPpm ? "true" : "false");
         document.getElementById("ppm-caret").innerHTML = state.showPpm ? "&#9650;" : "&#9660;";
         document.getElementById("ppm-label").textContent =
             (state.showPpm ? "Hide" : "Show") + " filler PPM" +
@@ -1464,6 +1501,12 @@
             markEdit();
             c.stops.splice(parseInt(b.dataset.del, 10), 1);
             renderStops();
+            calc();
+            return;
+        }
+
+        if (b.id === "disc-stops") {
+            state.showStops = !state.showStops;
             calc();
             return;
         }
@@ -1638,7 +1681,7 @@
     /* ===== Init ===== */
 
     load();
-    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30h";
+    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30m";
     refresh();
 
     setInterval(calc, 20000);
