@@ -606,6 +606,140 @@
             margin-top: 3px;
         }
 
+        /* ===== Job list ===== */
+        .jrow {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto 30px;
+            gap: 6px;
+            align-items: center;
+            padding: 7px 8px 7px 10px;
+            border: 1px solid #e4e4e4;
+            background: #fff;
+            color: #111;
+        }
+
+        .jrow.alt {
+            background: #f4f6f8;
+        }
+
+        .jrow:first-of-type {
+            border-radius: 8px 8px 0 0;
+        }
+
+        .jrow:last-of-type {
+            border-radius: 0 0 8px 8px;
+        }
+
+        .jrow + .jrow {
+            border-top: none;
+        }
+
+        .jrow.active {
+            background: #4CAF50;
+            border-color: #4CAF50;
+            color: #fff;
+        }
+
+        .form-container .jsel {
+            width: 100%;
+            margin-top: 0;
+            padding: 2px 0;
+            background: transparent;
+            color: inherit;
+            border: none;
+            border-radius: 0;
+            text-align: left;
+            font-size: 14px;
+            min-width: 0;
+        }
+
+        .form-container .jdel {
+            width: 30px;
+            margin-top: 0;
+            padding: 5px 0;
+            background: transparent;
+            color: #b3261e;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .form-container .jdel:hover {
+            background: #fdecea;
+            border-color: #f0c8c4;
+        }
+
+        .form-container .jdel.armed {
+            background: #b3261e;
+            border-color: #b3261e;
+            color: #fff;
+        }
+
+        .jrow.active .jdel {
+            color: #fff;
+        }
+
+        .jrow.active .jdel:hover {
+            background: rgba(255, 255, 255, 0.22);
+            border-color: transparent;
+        }
+
+        .jrow-t {
+            display: block;
+            font-weight: 800;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .jrow-w {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.8;
+        }
+
+        .jrow-v {
+            text-align: right;
+            font-size: 13px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .jrow-v small {
+            display: block;
+            font-size: 10px;
+            font-weight: 400;
+            opacity: 0.85;
+        }
+
+        .jgap {
+            font-size: 11px;
+            font-weight: 700;
+            color: #8a4d00;
+            background: #fff4e5;
+            border-left: 1px solid #e4e4e4;
+            border-right: 1px solid #e4e4e4;
+            padding: 4px 10px;
+        }
+
+        .jobcard {
+            margin-top: 14px;
+            padding: 12px;
+            border: 2px solid #4CAF50;
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .jobcard-head {
+            font-size: 15px;
+            font-weight: 800;
+            color: #2e7d32;
+            margin-bottom: 2px;
+        }
+
         /* ===== Output ===== */
         .output-container {
             margin-top: 20px;
@@ -766,6 +900,41 @@
             <div id="stale" style="display:none"></div>
             <div class="stamp" id="stamp"></div>
 
+            <label for="f-ss">Shift start</label>
+            <input type="time" id="f-ss" />
+
+            <label for="f-se">Shift end</label>
+            <input type="time" id="f-se" />
+
+            <button type="button" class="disc" id="disc-stops" aria-expanded="false" aria-controls="stops-body">
+                <span id="stops-label">Scheduled stops</span><span class="caret" id="stops-caret">&#9660;</span>
+            </button>
+            <div id="stops-body" style="display:none">
+                <div class="panel" style="margin-top:8px">
+                    <div class="panel-subtitle">Tap Paid / Unpaid to switch. Paid stops are shown for reference only &mdash; they don't reduce the goal. Add an unpaid stop for a changeover or planned downtime.</div>
+
+                    <div id="stops"></div>
+
+                    <button type="button" class="preset-btn" id="preset-default" style="margin-top:10px">Reset breaks &amp; stops to default</button>
+                    <button type="button" id="addstop">+ Add stop</button>
+                    <button type="button" class="preset-btn" id="apply-all" style="margin-top:10px;display:none">Copy breaks &amp; stops to every line</button>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top:14px">
+                <div class="panel-title">Jobs</div>
+                <div class="panel-subtitle">Each job runs from its start to its end. Add one and it picks up where the last left off &mdash; change its start to leave a gap for a meeting or shutdown. Times snap to the quarter hour.</div>
+                <div id="job-list"></div>
+                <div class="ppm-add" style="grid-template-columns:minmax(0,1fr) 46px;margin-top:10px;margin-bottom:0">
+                    <div class="tf"><span class="cap">New job</span>
+                        <input type="text" id="f-newjob" placeholder="Job / note" /></div>
+                    <button type="button" class="add-btn" id="job-add" aria-label="Add job">+</button>
+                </div>
+            </div>
+
+            <div class="jobcard" id="jobcard">
+            <div class="jobcard-head" id="jobcard-head"></div>
+
             <label for="f-job">Job / note</label>
             <input type="text" id="f-job" placeholder="e.g. W123456 or grinder blend" />
 
@@ -794,26 +963,18 @@
                 <button type="button" class="step-btn" data-md="0.25" aria-label="More maintenance down">+</button>
             </div>
 
-            <label for="f-ss">Shift start</label>
-            <input type="time" id="f-ss" />
-
-            <label for="f-se">Shift end</label>
-            <input type="time" id="f-se" />
-
-            <button type="button" class="disc" id="disc-stops" aria-expanded="false" aria-controls="stops-body">
-                <span id="stops-label">Scheduled stops</span><span class="caret" id="stops-caret">&#9660;</span>
-            </button>
-            <div id="stops-body" style="display:none">
-                <div class="panel" style="margin-top:8px">
-                    <div class="panel-subtitle">Tap Paid / Unpaid to switch. Paid stops are shown for reference only &mdash; they don't reduce the goal. Add an unpaid stop for a changeover or planned downtime.</div>
-
-                    <div id="stops"></div>
-
-                    <button type="button" class="preset-btn" id="preset-default" style="margin-top:10px">Reset breaks &amp; stops to default</button>
-                    <button type="button" id="addstop">+ Add stop</button>
-                    <button type="button" class="preset-btn" id="apply-all" style="margin-top:10px;display:none">Copy breaks &amp; stops to every line</button>
+            <div class="rate-row" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+                <div class="fld">
+                    <label for="f-jst">Job start</label>
+                    <input type="time" id="f-jst" step="900" />
+                </div>
+                <div class="fld">
+                    <label for="f-jen">Job end</label>
+                    <input type="time" id="f-jen" step="900" />
                 </div>
             </div>
+            <div class="eff" id="o-jwin"></div>
+
 
             <div class="output-container">
                 <div class="output-row"><strong>Shift length</strong><span class="value" id="o-len">&mdash;</span></div>
@@ -833,6 +994,8 @@
                     <div class="eff-big" id="o-effpct"></div>
                     <div class="eff-note" id="o-effnote"></div>
                 </div>
+
+                <button type="button" class="danger-btn" id="job-del" style="font-size:13px;padding:8px">Remove this job</button>
 
                 <button type="button" class="disc" id="disc-hours" aria-expanded="false" aria-controls="tbl">
                     <span id="disc-label">Hourly breakdown</span><span class="caret" id="disc-caret">&#9660;</span>
@@ -857,6 +1020,7 @@
                 </div>
                 <div class="warn" id="warn"></div>
                 <div class="hint" id="hint"></div>
+            </div>
             </div>
 
             <div class="panel">
@@ -895,19 +1059,54 @@
     /* One of these per line, plus one for single-line mode. Every line carries
        its own shift window and stop list so a late start or a changeover on one
        line never touches another. */
-    function newCfg() {
+    var jid = 1;
+
+    function newJob(st, en) {
         return {
-            job: "", uph: 0, ca: 1, cp: 1, md: 0,
-            ss: "16:15", se: "02:45", stops: defaultStops(),
-            ppm: [], fin: 0, at: 0
+            id: "j" + (jid++) + "_" + Math.random().toString(36).slice(2, 6),
+            note: "", uph: 0, ca: 1, cp: 1, md: 0, fin: 0, ppm: [],
+            st: st || "16:15", en: en || "02:45"
         };
     }
 
+    /* One of these per line, plus one for single-line mode. Shift window and
+       stops belong to the line; everything else belongs to a job. */
+    function newCfg() {
+        var c = {
+            ss: "16:15", se: "02:45", stops: defaultStops(),
+            jobs: [], sel: null, at: 0
+        };
+        var j = newJob(c.ss, c.se);
+        c.jobs.push(j);
+        c.sel = j.id;
+        return c;
+    }
+
     /* The rate actually expected, after scaling for a short crew. */
-    function effUph(c) {
-        var p = Math.max(1, c.cp || 1);
-        var a = Math.max(0, c.ca === 0 ? 0 : (c.ca || 1));
-        return c.uph * (a / p);
+    function effUph(j) {
+        var p = Math.max(1, j.cp || 1);
+        var a = Math.max(0, j.ca === 0 ? 0 : (j.ca || 1));
+        return j.uph * (a / p);
+    }
+
+    /* One of these per line, plus one for single-line mode. Shift window and
+       stops belong to the line; everything else belongs to a job. */
+    function newCfg() {
+        var c = {
+            ss: "16:15", se: "02:45", stops: defaultStops(),
+            jobs: [], sel: null, at: 0
+        };
+        var j = newJob(c.ss, c.se);
+        c.jobs.push(j);
+        c.sel = j.id;
+        return c;
+    }
+
+    /* The rate actually expected, after scaling for a short crew. */
+    function effUph(j) {
+        var p = Math.max(1, j.cp || 1);
+        var a = Math.max(0, j.ca === 0 ? 0 : (j.ca || 1));
+        return j.uph * (a / p);
     }
 
     var state = {
@@ -944,24 +1143,47 @@
         try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {}
     }
 
-    function sane(c) {
-        var o = newCfg();
-        if (!c || typeof c !== "object") return o;
-        o.job = typeof c.job === "string" ? c.job : "";
-        o.uph = Math.max(0, parseFloat(c.uph) || 0);
-        o.ca = c.ca === 0 ? 0 : Math.max(0, parseFloat(c.ca) || 1);
-        o.cp = Math.max(1, parseFloat(c.cp) || 1);
-        o.md = Math.max(0, Math.round((parseFloat(c.md) || 0) * 4) / 4);
-        o.fin = Math.max(0, parseFloat(c.fin) || 0);
-        if (Array.isArray(c.ppm)) {
-            o.ppm = c.ppm.filter(function (p) {
+    function saneJob(j, ss, se) {
+        var o = newJob(ss, se);
+        if (!j || typeof j !== "object") return o;
+        o.note = typeof j.note === "string" ? j.note : "";
+        o.uph = Math.max(0, parseFloat(j.uph) || 0);
+        o.ca = j.ca === 0 ? 0 : Math.max(0, parseFloat(j.ca) || 1);
+        o.cp = Math.max(1, parseFloat(j.cp) || 1);
+        o.md = Math.max(0, Math.round((parseFloat(j.md) || 0) * 4) / 4);
+        o.fin = Math.max(0, parseFloat(j.fin) || 0);
+        o.st = j.st || o.st;
+        o.en = j.en || o.en;
+        if (j.id) o.id = j.id;
+        if (Array.isArray(j.ppm)) {
+            o.ppm = j.ppm.filter(function (p) {
                 return p && typeof p.t === "string" && isFinite(p.v);
             });
         }
+        return o;
+    }
+
+    function sane(c) {
+        var o = newCfg();
+        if (!c || typeof c !== "object") return o;
         o.ss = c.ss || o.ss;
         o.se = c.se || o.se;
         o.at = c.at || 0;
         if (Array.isArray(c.stops)) o.stops = c.stops;
+
+        if (Array.isArray(c.jobs) && c.jobs.length) {
+            o.jobs = c.jobs.map(function (j) { return saneJob(j, o.ss, o.se); });
+        } else if (c.job !== undefined || c.uph !== undefined) {
+            /* Carry over a pre-jobs config as a single job spanning the shift. */
+            var j = saneJob({
+                note: c.job, uph: c.uph, ca: c.ca, cp: c.cp, md: c.md,
+                fin: c.fin, ppm: c.ppm, st: o.ss, en: o.se
+            }, o.ss, o.se);
+            o.jobs = [j];
+        }
+
+        var ids = o.jobs.map(function (j) { return j.id; });
+        o.sel = (c.sel && ids.indexOf(c.sel) >= 0) ? c.sel : ids[0];
         return o;
     }
 
@@ -991,6 +1213,30 @@
         if (!l) return null;
         if (!state.lines[l]) state.lines[l] = newCfg();
         return state.lines[l];
+    }
+
+    function job() {
+        var c = cfg();
+        if (!c) return null;
+        var f = c.jobs.filter(function (j) { return j.id === c.sel; });
+        return f.length ? f[0] : c.jobs[0];
+    }
+
+    /* Display title for a job: its note, or its position in the shift. Used by
+       both the list row and the card header so they always agree. */
+    function jobTitle(c, j) {
+        var n = (j.note || "").trim();
+        if (n) return n;
+        var ord = jobsOrdered(c);
+        for (var i = 0; i < ord.length; i++) if (ord[i].id === j.id) return "Job " + (i + 1);
+        return "Job";
+    }
+
+    /* Jobs in shift order, not clock order, so a 1 AM job follows a 10 PM one. */
+    function jobsOrdered(c) {
+        var s = tm(c.ss);
+        function off(t) { return ((tm(t) - s) % 1440 + 1440) % 1440; }
+        return c.jobs.slice().sort(function (a, b) { return off(a.st) - off(b.st); });
     }
 
     function tm(s) {
@@ -1057,6 +1303,27 @@
         return p;
     }
 
+    /* A job's window as offsets into the shift. Clamped to the shift, since a
+       job can't earn standard outside it. */
+    function jobWin(d, j) {
+        var s = d.s;
+        var a = ((tm(j.st) - s) % 1440 + 1440) % 1440;
+        var b = ((tm(j.en) - s) % 1440 + 1440) % 1440;
+        if (b === 0) b = d.len;
+        a = Math.min(a, d.len);
+        b = Math.min(b, d.len);
+        return { a: a, b: Math.max(a, b) };
+    }
+
+    /* Productive minutes inside a job's window, between two offsets. */
+    function prodIn(d, w, from, to) {
+        var lo = Math.max(w.a, from === undefined ? w.a : from);
+        var hi = Math.min(w.b, to === undefined ? w.b : to);
+        var p = 0;
+        for (var k = lo; k < hi; k++) if (d.flag[k] === 1) p++;
+        return p;
+    }
+
     function nowInfo(d) {
         var n = new Date();
         var mins = n.getHours() * 60 + n.getMinutes();
@@ -1119,6 +1386,23 @@
             b.classList.toggle("armed", on);
         });
 
+        var jd = document.getElementById("job-del");
+        if (jd) {
+            var jon = id === "job-del";
+            jd.textContent = jon ? "Tap again to remove" : "Remove this job";
+            jd.classList.toggle("armed", jon);
+        }
+
+        /* The row X is tiny, so arming swaps the glyph as well as the colour. */
+        var rows = document.querySelectorAll(".jdel");
+        if (rows && rows.forEach) {
+            rows.forEach(function (x) {
+                var on = id === "jdel:" + x.getAttribute("data-jdel");
+                x.classList.toggle("armed", on);
+                x.innerHTML = on ? "&#10003;" : "&times;";
+            });
+        }
+
         if (id) armTimer = setTimeout(function () { setArmed(null); }, 4000);
     }
 
@@ -1157,7 +1441,7 @@
             var cls = "line-btn";
             if (state.sel === l) cls += " active";
             else if (c && isStale(c)) cls += " old";
-            else if (c && c.uph) cls += " set";
+            else if (c && c.jobs.some(function (x) { return x.uph > 0; })) cls += " set";
             var flag = (c && isStale(c)) ? "\u26a0 " : "";
             h += '<button type="button" class="' + cls + '" data-sel="' + esc(l) +
                 '" aria-pressed="' + (state.sel === l ? "true" : "false") + '">' + flag + esc(l) + "</button>";
@@ -1169,16 +1453,16 @@
 
     /* Readings sorted by where they fall in the shift, not by clock value, so a
        1 AM sample lands after a 10 PM one rather than at the top. */
-    function ppmSorted(c) {
+    function ppmSorted(c, j) {
         var s = tm(c.ss);
-        return c.ppm.slice().sort(function (a, b) {
+        return j.ppm.slice().sort(function (a, b) {
             return ((tm(a.t) - s) % 1440 + 1440) % 1440 - ((tm(b.t) - s) % 1440 + 1440) % 1440;
         });
     }
 
-    function renderPpm(c, need) {
+    function renderPpm(c, j, need) {
         var list = document.getElementById("ppm-list");
-        var rows = ppmSorted(c);
+        var rows = ppmSorted(c, j);
 
         document.getElementById("ppm-need").innerHTML = need > 0
             ? "Standard works out to <strong>" + need.toFixed(1) +
@@ -1196,7 +1480,7 @@
             sum += p.v;
             var d = need > 0 ? p.v - need : 0;
             var cls = d >= 0 ? "up" : "down";
-            var idx = c.ppm.indexOf(p);
+            var idx = j.ppm.indexOf(p);
             h += '<div class="ppm-item">' +
                 '<span class="ppm-t">' + fmt(tm(p.t)) + "</span>" +
                 '<span class="ppm-v"><strong>' + p.v.toFixed(1) + "</strong> PPM" +
@@ -1216,16 +1500,18 @@
     }
 
     function renderCfg() {
-        var c = cfg();
-        if (!c) return;
-        document.getElementById("f-job").value = c.job;
-        document.getElementById("f-uph").value = c.uph || "";
-        document.getElementById("f-crew-a").value = c.ca;
-        document.getElementById("f-crew-p").value = c.cp;
-        document.getElementById("f-md").value = c.md.toFixed(2);
-        document.getElementById("f-final").value = c.fin || "";
+        var c = cfg(), j = job();
+        if (!c || !j) return;
         document.getElementById("f-ss").value = c.ss;
         document.getElementById("f-se").value = c.se;
+        document.getElementById("f-job").value = j.note;
+        document.getElementById("f-uph").value = j.uph || "";
+        document.getElementById("f-crew-a").value = j.ca;
+        document.getElementById("f-crew-p").value = j.cp;
+        document.getElementById("f-md").value = j.md.toFixed(2);
+        document.getElementById("f-final").value = j.fin || "";
+        document.getElementById("f-jst").value = j.st;
+        document.getElementById("f-jen").value = j.en;
         resetPpmForm();
         renderStops();
     }
@@ -1260,6 +1546,67 @@
         }).join("");
     }
 
+    /* One striped row per job, titled by its note. The right column shows the
+       live standard while a job is running, or its efficiency once counted. */
+    function renderJobs(c, d) {
+        var rows = jobsOrdered(c);
+        var now = nowInfo(d);
+        var h = "", prevEnd = 0;
+
+        function gap(from, to, label) {
+            var g = to - from;
+            if (g <= 0) return "";
+            return '<div class="jgap">' + label + " " + Math.floor(g / 60) + ":" +
+                String(g % 60).padStart(2, "0") + " \u2014 " +
+                fmt(d.s + from) + "\u2013" + fmt(d.s + to) + "</div>";
+        }
+
+        rows.forEach(function (j, i) {
+            var w = jobWin(d, j);
+
+            /* Any stretch of shift not covered by a job shows as its own strip,
+               including before the first job and after the last. */
+            h += gap(prevEnd, w.a, i === 0 ? "unassigned" : "gap");
+            prevEnd = Math.max(prevEnd, w.b);
+
+            var u = effUph(j);
+            var mdMin = j.md * 60;
+            var runAdj = Math.max(0, prodIn(d, w) - mdMin);
+            var total = runAdj / 60 * u;
+            var val = "&mdash;", sub = "";
+
+            if (j.fin > 0 && j.uph) {
+                var pct = total > 0 ? (j.fin / total) * 100 : 0;
+                val = pct.toFixed(0) + "%";
+                sub = num(j.fin) + " / " + num(total);
+            } else if (j.uph) {
+                if (now.phase === "pre" || now.off <= w.a) {
+                    val = "&mdash;";
+                    sub = num(total) + " goal";
+                } else {
+                    var e = Math.max(0, prodIn(d, w, w.a, Math.min(now.off, w.b)) - mdMin);
+                    val = num(e / 60 * u);
+                    sub = "of " + num(total);
+                }
+            }
+
+            h += '<div class="jrow' + (i % 2 ? " alt" : "") +
+                (c.sel === j.id ? " active" : "") + '">' +
+                '<button type="button" class="jsel" data-job="' + esc(j.id) + '">' +
+                '<span class="jrow-t">' + esc(jobTitle(c, j)) + "</span>" +
+                '<span class="jrow-w">' + fmt(d.s + w.a) + "\u2013" + fmt(d.s + w.b) +
+                " \u00b7 " + (prodIn(d, w) / 60).toFixed(2) + " hr</span></button>" +
+                '<span class="jrow-v">' + val + (sub ? "<small>" + sub + "</small>" : "") + "</span>" +
+                '<button type="button" class="jdel" data-jdel="' + esc(j.id) +
+                '" aria-label="Remove ' + esc(jobTitle(c, j)) + '">&times;</button>' +
+                "</div>";
+        });
+
+        h += gap(prevEnd, d.len, "unassigned");
+        document.getElementById("job-list").innerHTML = h;
+        if (armed && armed.indexOf("jdel:") === 0) armed = null;
+    }
+
     function renderStamp() {
         var c = cfg();
         var el = document.getElementById("stamp");
@@ -1292,84 +1639,104 @@
     }
 
     function calc() {
-        var c = cfg();
-        if (!c) return;
+        var c = cfg(), j = job();
+        if (!c || !j) return;
 
         var d = build(c);
-        var u = effUph(c), jb = c.job.trim();
-        var short = c.uph > 0 && u !== c.uph;
+        var w = jobWin(d, j);
+        var u = effUph(j), jb = j.note.trim();
+        var short = j.uph > 0 && u !== j.uph;
         var now = nowInfo(d);
-        var mdMin = Math.max(0, c.md) * 60;
-        var runAdj = Math.max(0, d.run - mdMin);
+        var mdMin = Math.max(0, j.md) * 60;
+
+        var winMin = w.b - w.a;
+        var prod = prodIn(d, w);
+        var unpaidIn = winMin - prod;
+        var runAdj = Math.max(0, prod - mdMin);
         var total = runAdj / 60 * u;
-        var earnedMin = Math.max(0, earnedBy(d, now.off) - mdMin);
+
+        var upto = Math.max(w.a, Math.min(now.off, w.b));
+        var earnedMin = Math.max(0, prodIn(d, w, w.a, upto) - mdMin);
         var earned = earnedMin / 60 * u;
 
+        renderJobs(c, d);
+        document.getElementById("jobcard-head").textContent =
+            jobTitle(c, j) + " \u00b7 " + fmt(d.s + w.a) + "\u2013" + fmt(d.s + w.b);
+
         var mdEl = document.getElementById("f-md");
-        mdEl.className = c.md > 0 ? "set" : "";
-        document.querySelector('[data-md="-0.25"]').disabled = c.md <= 0;
+        mdEl.className = j.md > 0 ? "set" : "";
+        document.querySelector('[data-md="-0.25"]').disabled = j.md <= 0;
 
         document.getElementById("frac-box").className = short ? "frac set" : "frac";
         document.getElementById("o-eff").textContent = short
-            ? "Crew " + c.ca + "/" + c.cp + " \u2014 standard adjusted to " +
-              num(u) + " UPH (from " + num(c.uph) + ")"
+            ? "Crew " + j.ca + "/" + j.cp + " \u2014 standard adjusted to " +
+              num(u) + " UPH (from " + num(j.uph) + ")"
             : "";
 
-        document.getElementById("o-len").textContent = (d.len / 60).toFixed(2) + " hr (" + d.len + " min)";
-        document.getElementById("o-unpaid").textContent = d.unpaid + " min";
-        document.getElementById("o-md").textContent = c.md > 0
-            ? "\u2212" + c.md.toFixed(2) + " hr (" + Math.round(mdMin) + " min)"
+        document.getElementById("o-jwin").textContent = winMin < d.len
+            ? "This job covers " + (winMin / 60).toFixed(2) + " hr of the " +
+              (d.len / 60).toFixed(2) + " hr shift"
+            : "";
+
+        document.getElementById("o-len").textContent = (winMin / 60).toFixed(2) + " hr (" + winMin + " min)";
+        document.getElementById("o-unpaid").textContent = unpaidIn + " min";
+        document.getElementById("o-md").textContent = j.md > 0
+            ? "\u2212" + j.md.toFixed(2) + " hr (" + Math.round(mdMin) + " min)"
             : "none";
         document.getElementById("o-run").textContent = (runAdj / 60).toFixed(2) + " hr (" + runAdj + " min)";
 
         var lbl = document.getElementById("o-goallabel");
         var big = document.getElementById("o-goal");
         var sub = document.getElementById("o-goalsub");
-        var suffix = jb ? " \u2014 " + jb : "";
+        var suffix = " \u2014 " + jobTitle(c, j);
 
-        if (!c.uph) {
-            lbl.textContent = "Total shift goal" + suffix;
+        if (!j.uph) {
+            lbl.textContent = "Job goal" + suffix;
             big.textContent = "\u2014";
             sub.textContent = "Enter a UPH to see the standard.";
-        } else if (now.phase === "pre") {
-            lbl.textContent = "Shift hasn't started" + suffix;
+        } else if (now.phase === "pre" || now.off <= w.a) {
+            lbl.textContent = "Job hasn't started" + suffix;
             big.textContent = "\u2014";
-            sub.textContent = "Full shift goal " + num(total) + " \u00b7 starts " + fmt(d.s);
-        } else if (now.phase === "post") {
-            lbl.textContent = "Shift complete" + suffix;
+            sub.textContent = "Job goal " + num(total) + " \u00b7 starts " + fmt(d.s + w.a);
+        } else if (now.off >= w.b) {
+            lbl.textContent = "Job complete" + suffix;
             big.textContent = num(total);
-            sub.textContent = "Full shift goal";
+            sub.textContent = "Full job goal \u00b7 " + (u / 60).toFixed(1) + " PPM";
         } else {
             lbl.textContent = "Standard at " + now.label + suffix;
             big.textContent = num(earned);
-            sub.textContent = "of " + num(total) + " for the shift \u00b7 " +
+            sub.textContent = "of " + num(total) + " for this job \u00b7 " +
                 Math.round(total ? (earned / total) * 100 : 0) + "% \u00b7 " +
                 (u / 60).toFixed(1) + " PPM";
         }
 
         var h = '<thead><tr><th class="l">Hr</th><th class="l">Window</th><th>Run</th><th>Goal</th><th>Cum.</th></tr></thead><tbody>';
-        var cum = 0;
+        var cum = 0, shown = 0;
         d.rows.forEach(function (r) {
-            var g = (r.prod / 60) * u;
+            var lo = Math.max(r.off, w.a), hi = Math.min(r.off + r.blk, w.b);
+            if (hi <= lo) return;
+            shown++;
+            var pm = prodIn(d, w, r.off, r.off + r.blk);
+            var g = (pm / 60) * u;
             cum += g;
             var isNow = now.phase === "in" && now.off >= r.off && now.off < r.off + r.blk;
-            h += '<tr class="' + (r.prod < r.blk ? "hasunpaid " : "") + (isNow ? "nowrow" : "") + '">' +
-                '<td class="l">' + r.i + (isNow ? ' <span class="nowmark">&#9656;</span>' : "") + "</td>" +
-                '<td class="l"><span class="win">' + fmt(r.st) + "&ndash;" + fmt(r.en) +
+            h += '<tr class="' + (pm < hi - lo ? "hasunpaid " : "") + (isNow ? "nowrow" : "") + '">' +
+                '<td class="l">' + shown + (isNow ? ' <span class="nowmark">&#9656;</span>' : "") + "</td>" +
+                '<td class="l"><span class="win">' + fmt(d.s + lo) + "&ndash;" + fmt(d.s + hi) +
                 (r.paid ? ' <span class="brkdot">&bull;</span>' : "") + "</span></td>" +
-                "<td>" + r.prod + "</td>" +
-                "<td>" + (c.uph ? num(g) : "\u2014") + "</td>" +
-                "<td>" + (c.uph ? num(cum) : "\u2014") + "</td></tr>";
+                "<td>" + pm + "</td>" +
+                "<td>" + (j.uph ? num(g) : "\u2014") + "</td>" +
+                "<td>" + (j.uph ? num(cum) : "\u2014") + "</td></tr>";
         });
-        h += '<tr class="foot"><td class="l" colspan="2">' + (c.md > 0 ? "Scheduled" : "Total") +
-            "</td><td>" + d.run + " min</td><td>" +
-            (c.uph ? num(cum) : "\u2014") + "</td><td></td></tr>";
+        h += '<tr class="foot"><td class="l" colspan="2">' + (j.md > 0 ? "Scheduled" : "Total") +
+            "</td><td>" + prod + " min</td><td>" +
+            (j.uph ? num(cum) : "\u2014") + "</td><td></td></tr>";
 
-        if (c.md > 0) {
+        if (j.md > 0) {
             h += '<tr class="foot2"><td class="l" colspan="2">Less MD</td><td>&minus;' + Math.round(mdMin) +
                 " min</td><td>&minus;" + num(Math.min(cum, mdMin / 60 * u)) + "</td><td></td></tr>" +
                 '<tr class="foot2"><td class="l" colspan="2">Standard</td><td>' + runAdj +
-                " min</td><td>" + (c.uph ? num(total) : "\u2014") + "</td><td></td></tr>";
+                " min</td><td>" + (j.uph ? num(total) : "\u2014") + "</td><td></td></tr>";
         }
 
         h += "</tbody>";
@@ -1382,16 +1749,16 @@
         disc.setAttribute("aria-expanded", state.showHours ? "true" : "false");
         document.getElementById("disc-caret").innerHTML = state.showHours ? "&#9650;" : "&#9660;";
         document.getElementById("disc-label").textContent =
-            (state.showHours ? "Hide" : "Show") + " hourly breakdown (" + d.rows.length + " hrs)";
+            (state.showHours ? "Hide" : "Show") + " hourly breakdown (" + shown + " hrs)";
 
         document.getElementById("warn").textContent = d.outside
             ? d.outside + " stop(s) start outside this line's shift window and were ignored."
             : "";
 
         document.getElementById("hint").innerHTML = "Notes:" +
-            (c.md > 0 ? "<br>&bull; MD comes off the standard, so it doesn't count against the line" : "") +
-            (short ? "<br>&bull; Crew " + c.ca + "/" + c.cp + " scales the rate; " +
-                num(c.uph / Math.max(1, c.cp)) + " UPH per person" : "") +
+            (j.md > 0 ? "<br>&bull; MD comes off the standard, so it doesn't count against the line" : "") +
+            (short ? "<br>&bull; Crew " + j.ca + "/" + j.cp + " scales the rate; " +
+                num(j.uph / Math.max(1, j.cp)) + " UPH per person" : "") +
             "<br>&bull; Paid breaks stay in the standard, so those hours keep a full goal" +
             (d.rows.some(function (r) { return r.paid; }) ? ' (marked <span class="brkdot">&bull;</span>)' : "") +
             "<br>&bull; Highlighted rows lose minutes to unpaid time" +
@@ -1402,18 +1769,18 @@
         var effEl = document.getElementById("o-effpct");
         var noteEl = document.getElementById("o-effnote");
 
-        if (!c.fin || !c.uph) {
+        if (!j.fin || !j.uph) {
             effEl.className = "eff-big";
             effEl.textContent = "";
-            noteEl.textContent = c.uph
+            noteEl.textContent = j.uph
                 ? "Enter the final count to see efficiency against the standard."
                 : "Enter a UPH and the final count to see efficiency.";
         } else {
-            var pct = total > 0 ? (c.fin / total) * 100 : 0;
-            var diff = c.fin - total;
+            var pct = total > 0 ? (j.fin / total) * 100 : 0;
+            var diff = j.fin - total;
             effEl.className = "eff-big " + (pct >= 100 ? "over" : "under");
             effEl.textContent = pct.toFixed(1) + "%";
-            noteEl.textContent = num(c.fin) + " against a standard of " + num(total) +
+            noteEl.textContent = num(j.fin) + " against a standard of " + num(total) +
                 " \u00b7 " + (diff >= 0 ? "+" : "\u2212") + num(Math.abs(diff)) + " units";
         }
 
@@ -1435,9 +1802,9 @@
         document.getElementById("ppm-caret").innerHTML = state.showPpm ? "&#9650;" : "&#9660;";
         document.getElementById("ppm-label").textContent =
             (state.showPpm ? "Hide" : "Show") + " filler PPM" +
-            (c.uph ? " \u00b7 need " + need.toFixed(1) : "") +
-            (c.ppm.length ? " \u00b7 " + c.ppm.length + " logged" : "");
-        renderPpm(c, need);
+            (j.uph ? " \u00b7 need " + need.toFixed(1) : "") +
+            (j.ppm.length ? " \u00b7 " + j.ppm.length + " logged" : "");
+        renderPpm(c, j, need);
 
         renderStamp();
         save();
@@ -1505,6 +1872,84 @@
             return;
         }
 
+        if (b.dataset.job !== undefined) {
+            c.sel = b.dataset.job;
+            renderCfg();
+            calc();
+            return;
+        }
+
+        if (b.id === "job-add") {
+            markEdit();
+            var nf = document.getElementById("f-newjob");
+            var d0 = build(c);
+            var ord = jobsOrdered(c);
+            var last = ord[ord.length - 1];
+            var lw = last ? jobWin(d0, last) : { a: 0, b: d0.len };
+
+            /* Sign off at the clock if we're mid-shift, otherwise at the end of
+               the last job. Clamped so the split always leaves both sides real. */
+            var n0 = nowInfo(d0);
+            var cut = (n0.phase === "in" && n0.off > lw.a && n0.off < d0.len)
+                ? Math.round(n0.off / 15) * 15
+                : lw.b;
+            if (cut <= lw.a || cut >= d0.len) cut = Math.min(lw.a + 60, d0.len - 15);
+            if (cut <= lw.a) cut = lw.a;
+
+            function atOff(o) {
+                var m = ((d0.s + o) % 1440 + 1440) % 1440;
+                return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+            }
+
+            var nj = newJob(atOff(cut), c.se);
+            nj.note = nf.value.trim();
+            if (last) last.en = nj.st;
+            c.jobs.push(nj);
+            c.sel = nj.id;
+            nf.value = "";
+            renderCfg();
+            calc();
+            return;
+        }
+
+        if (b.dataset.jdel !== undefined) {
+            if (armed !== "jdel:" + b.dataset.jdel) { setArmed("jdel:" + b.dataset.jdel); return; }
+            setArmed(null);
+            c.sel = b.dataset.jdel;
+            b = { id: "job-del", dataset: {}, armedOk: true };
+        }
+
+        if (b.id === "job-del") {
+            if (!b.armedOk) {
+                if (armed !== "job-del") { setArmed("job-del"); return; }
+                setArmed(null);
+            }
+            markEdit();
+
+            /* Deleting the last job clears it rather than leaving the line with
+               none, since a line always needs somewhere to put a rate. */
+            if (c.jobs.length < 2) {
+                var fresh = newJob(c.ss, c.se);
+                c.jobs = [fresh];
+                c.sel = fresh.id;
+                renderCfg();
+                calc();
+                return;
+            }
+
+            var ord2 = jobsOrdered(c);
+            var idx = ord2.findIndex(function (x) { return x.id === c.sel; });
+            var gone = ord2[idx];
+            /* Hand the window back to the neighbour so no time is orphaned. */
+            if (idx > 0) ord2[idx - 1].en = gone.en;
+            else if (ord2[1]) ord2[1].st = gone.st;
+            c.jobs = c.jobs.filter(function (x) { return x.id !== gone.id; });
+            c.sel = c.jobs[0].id;
+            renderCfg();
+            calc();
+            return;
+        }
+
         if (b.id === "disc-stops") {
             state.showStops = !state.showStops;
             calc();
@@ -1523,7 +1968,7 @@
             var tv = document.getElementById("f-ppm-t").value;
             if (!isFinite(v) || v < 0 || !tv) return;
             markEdit();
-            c.ppm.push({ t: tv, v: v });
+            job().ppm.push({ t: tv, v: v });
             resetPpmForm();
             calc();
             return;
@@ -1531,7 +1976,7 @@
 
         if (b.dataset.pd !== undefined) {
             markEdit();
-            c.ppm.splice(parseInt(b.dataset.pd, 10), 1);
+            job().ppm.splice(parseInt(b.dataset.pd, 10), 1);
             calc();
             return;
         }
@@ -1545,8 +1990,9 @@
         if (b.dataset.md !== undefined) {
             markEdit();
             var step = parseFloat(b.dataset.md);
-            c.md = Math.max(0, Math.round((c.md + step) * 4) / 4);
-            document.getElementById("f-md").value = c.md.toFixed(2);
+            var jj = job();
+            jj.md = Math.max(0, Math.round((jj.md + step) * 4) / 4);
+            document.getElementById("f-md").value = jj.md.toFixed(2);
             calc();
             return;
         }
@@ -1630,37 +2076,45 @@
 
         markEdit();
 
-        if (t.id === "f-job") { c.job = t.value; calc(); return; }
+        if (t.id === "f-job") { job().note = t.value; calc(); return; }
 
         if (t.id === "f-uph") {
-            c.uph = Math.max(0, parseFloat(t.value) || 0);
+            job().uph = Math.max(0, parseFloat(t.value) || 0);
             calc();
             return;
         }
 
         if (t.id === "f-crew-a") {
-            c.ca = t.value === "" ? 1 : Math.max(0, parseFloat(t.value) || 0);
+            job().ca = t.value === "" ? 1 : Math.max(0, parseFloat(t.value) || 0);
             calc();
             return;
         }
 
         if (t.id === "f-crew-p") {
-            c.cp = Math.max(1, parseFloat(t.value) || 1);
+            job().cp = Math.max(1, parseFloat(t.value) || 1);
             calc();
             return;
         }
 
         if (t.id === "f-final") {
-            c.fin = Math.max(0, parseFloat(t.value) || 0);
+            job().fin = Math.max(0, parseFloat(t.value) || 0);
             calc();
             return;
         }
 
         if (t.id === "f-md") {
-            c.md = Math.max(0, parseFloat(t.value) || 0);
+            job().md = Math.max(0, parseFloat(t.value) || 0);
             calc();
             return;
         }
+
+        if (t.id === "f-jst" || t.id === "f-jen") {
+            if (!t.value) return;
+            job()[t.id === "f-jst" ? "st" : "en"] = t.value;
+            calc();
+            return;
+        }
+        if (t.id === "f-newjob") { return; }
 
         if (t.id === "f-ss") { c.ss = t.value; calc(); return; }
         if (t.id === "f-se") { c.se = t.value; calc(); return; }
@@ -1679,7 +2133,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-08-15T07:26:00Z";
+    var REV = "2026-08-15T09:10:00Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
