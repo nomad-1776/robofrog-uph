@@ -406,6 +406,84 @@
             margin: 6px 0 0 0;
         }
 
+        .md-row {
+            display: grid;
+            grid-template-columns: 46px minmax(0, 1fr) 46px;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .form-container .step-btn {
+            width: 100%;
+            margin-top: 0;
+            padding: 10px 0;
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1;
+            background: #fff;
+            color: #111;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+
+        .form-container .step-btn:hover {
+            background: #f2f2f2;
+        }
+
+        .form-container .step-btn:disabled {
+            opacity: 0.35;
+        }
+
+        .form-container .md-row input {
+            margin: 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 800;
+            padding: 8px 4px;
+        }
+
+        .form-container .md-row input.set {
+            border-color: #f0d3a8;
+            background: #fff8ef;
+            color: #a35c00;
+        }
+
+        .form-container .disc {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 9px 10px;
+            background: #fff;
+            color: #111;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .form-container .disc:hover {
+            background: #f2f2f2;
+        }
+
+        .disc .caret {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        table.hrs.collapsed thead,
+        table.hrs.collapsed tbody tr:not(.foot):not(.foot2) {
+            display: none;
+        }
+
+        table.hrs.collapsed tr.foot td {
+            border-top: none;
+        }
+
         /* ===== Output ===== */
         .output-container {
             margin-top: 20px;
@@ -505,6 +583,13 @@
             background: #f4f8f4;
         }
 
+        table.hrs tr.foot2 td {
+            border-top: none;
+            border-bottom: none;
+            font-weight: 800;
+            background: #f4f8f4;
+        }
+
         .win {
             font-size: 11px;
             opacity: 0.85;
@@ -580,6 +665,13 @@
             </div>
             <div class="eff" id="o-eff"></div>
 
+            <label for="f-md">Maintenance down (hours)</label>
+            <div class="md-row">
+                <button type="button" class="step-btn" data-md="-0.25" aria-label="Less maintenance down">&minus;</button>
+                <input type="number" id="f-md" min="0" step="0.25" inputmode="decimal" aria-label="Maintenance down hours" />
+                <button type="button" class="step-btn" data-md="0.25" aria-label="More maintenance down">+</button>
+            </div>
+
             <label for="f-ss">Shift start</label>
             <input type="time" id="f-ss" />
 
@@ -600,6 +692,7 @@
             <div class="output-container">
                 <div class="output-row"><strong>Shift length</strong><span class="value" id="o-len">&mdash;</span></div>
                 <div class="output-row"><strong>Unpaid time</strong><span class="value" id="o-unpaid">&mdash;</span></div>
+                <div class="output-row"><strong>Maintenance down</strong><span class="value" id="o-md">&mdash;</span></div>
                 <div class="output-row"><strong>Expected run time</strong><span class="value" id="o-run">&mdash;</span></div>
 
                 <div class="goal-box">
@@ -608,6 +701,9 @@
                     <div class="goal-sub" id="o-goalsub"></div>
                 </div>
 
+                <button type="button" class="disc" id="disc-hours" aria-expanded="false" aria-controls="tbl">
+                    <span id="disc-label">Hourly breakdown</span><span class="caret" id="disc-caret">&#9660;</span>
+                </button>
                 <div class="tbl-wrap"><table class="hrs" id="tbl"></table></div>
                 <div class="warn" id="warn"></div>
                 <div class="hint" id="hint"></div>
@@ -651,7 +747,7 @@
        line never touches another. */
     function newCfg() {
         return {
-            job: "", uph: 0, ca: 1, cp: 1,
+            job: "", uph: 0, ca: 1, cp: 1, md: 0,
             ss: "16:15", se: "02:45", stops: defaultStops(), at: 0
         };
     }
@@ -668,6 +764,7 @@
         dept: GROUPS[0].d,
         sel: ALL_LINES[0],
         selBy: {},
+        showHours: false,
         single: newCfg(),
         lines: {}
     };
@@ -701,6 +798,7 @@
         o.uph = Math.max(0, parseFloat(c.uph) || 0);
         o.ca = c.ca === 0 ? 0 : Math.max(0, parseFloat(c.ca) || 1);
         o.cp = Math.max(1, parseFloat(c.cp) || 1);
+        o.md = Math.max(0, Math.round((parseFloat(c.md) || 0) * 4) / 4);
         o.ss = c.ss || o.ss;
         o.se = c.se || o.se;
         o.at = c.at || 0;
@@ -715,6 +813,7 @@
             state.mode = s.mode === "all" ? "all" : "single";
             if (s.dept && GROUPS.some(function (g) { return g.d === s.dept; })) state.dept = s.dept;
             if (s.selBy && typeof s.selBy === "object") state.selBy = s.selBy;
+            state.showHours = s.showHours === true;
             if (s.sel && ALL_LINES.indexOf(s.sel) >= 0) state.sel = s.sel;
             state.single = sane(s.single);
             if (s.lines && typeof s.lines === "object") {
@@ -914,6 +1013,7 @@
         document.getElementById("f-uph").value = c.uph || "";
         document.getElementById("f-crew-a").value = c.ca;
         document.getElementById("f-crew-p").value = c.cp;
+        document.getElementById("f-md").value = c.md.toFixed(2);
         document.getElementById("f-ss").value = c.ss;
         document.getElementById("f-se").value = c.se;
         renderStops();
@@ -979,8 +1079,15 @@
         var u = effUph(c), jb = c.job.trim();
         var short = c.uph > 0 && u !== c.uph;
         var now = nowInfo(d);
-        var total = d.run / 60 * u;
-        var earned = earnedBy(d, now.off) / 60 * u;
+        var mdMin = Math.max(0, c.md) * 60;
+        var runAdj = Math.max(0, d.run - mdMin);
+        var total = runAdj / 60 * u;
+        var earnedMin = Math.max(0, earnedBy(d, now.off) - mdMin);
+        var earned = earnedMin / 60 * u;
+
+        var mdEl = document.getElementById("f-md");
+        mdEl.className = c.md > 0 ? "set" : "";
+        document.querySelector('[data-md="-0.25"]').disabled = c.md <= 0;
 
         document.getElementById("frac-box").className = short ? "frac set" : "frac";
         document.getElementById("o-eff").textContent = short
@@ -990,7 +1097,10 @@
 
         document.getElementById("o-len").textContent = (d.len / 60).toFixed(2) + " hr (" + d.len + " min)";
         document.getElementById("o-unpaid").textContent = d.unpaid + " min";
-        document.getElementById("o-run").textContent = (d.run / 60).toFixed(2) + " hr (" + d.run + " min)";
+        document.getElementById("o-md").textContent = c.md > 0
+            ? "\u2212" + c.md.toFixed(2) + " hr (" + Math.round(mdMin) + " min)"
+            : "none";
+        document.getElementById("o-run").textContent = (runAdj / 60).toFixed(2) + " hr (" + runAdj + " min)";
 
         var lbl = document.getElementById("o-goallabel");
         var big = document.getElementById("o-goal");
@@ -1030,15 +1140,34 @@
                 "<td>" + (c.uph ? num(g) : "\u2014") + "</td>" +
                 "<td>" + (c.uph ? num(cum) : "\u2014") + "</td></tr>";
         });
-        h += '<tr class="foot"><td class="l" colspan="2">Total</td><td>' + d.run + "</td><td>" +
-            (c.uph ? num(cum) : "\u2014") + "</td><td></td></tr></tbody>";
+        h += '<tr class="foot"><td class="l" colspan="2">' + (c.md > 0 ? "Scheduled" : "Total") +
+            "</td><td>" + d.run + " min</td><td>" +
+            (c.uph ? num(cum) : "\u2014") + "</td><td></td></tr>";
+
+        if (c.md > 0) {
+            h += '<tr class="foot2"><td class="l" colspan="2">Less MD</td><td>&minus;' + Math.round(mdMin) +
+                " min</td><td>&minus;" + num(Math.min(cum, mdMin / 60 * u)) + "</td><td></td></tr>" +
+                '<tr class="foot2"><td class="l" colspan="2">Standard</td><td>' + runAdj +
+                " min</td><td>" + (c.uph ? num(total) : "\u2014") + "</td><td></td></tr>";
+        }
+
+        h += "</tbody>";
         document.getElementById("tbl").innerHTML = h;
+
+        var tblEl = document.getElementById("tbl");
+        tblEl.className = state.showHours ? "hrs" : "hrs collapsed";
+        var disc = document.getElementById("disc-hours");
+        disc.setAttribute("aria-expanded", state.showHours ? "true" : "false");
+        document.getElementById("disc-caret").innerHTML = state.showHours ? "&#9650;" : "&#9660;";
+        document.getElementById("disc-label").textContent =
+            (state.showHours ? "Hide" : "Show") + " hourly breakdown (" + d.rows.length + " hrs)";
 
         document.getElementById("warn").textContent = d.outside
             ? d.outside + " stop(s) start outside this line's shift window and were ignored."
             : "";
 
         document.getElementById("hint").innerHTML = "Notes:" +
+            (c.md > 0 ? "<br>&bull; MD comes off the standard, so it doesn't count against the line" : "") +
             (short ? "<br>&bull; Crew " + c.ca + "/" + c.cp + " scales the rate; " +
                 num(c.uph / Math.max(1, c.cp)) + " UPH per person" : "") +
             "<br>&bull; Paid breaks stay in the standard, so those hours keep a full goal" +
@@ -1109,6 +1238,21 @@
             markEdit();
             c.stops.splice(parseInt(b.dataset.del, 10), 1);
             renderStops();
+            calc();
+            return;
+        }
+
+        if (b.id === "disc-hours") {
+            state.showHours = !state.showHours;
+            calc();
+            return;
+        }
+
+        if (b.dataset.md !== undefined) {
+            markEdit();
+            var step = parseFloat(b.dataset.md);
+            c.md = Math.max(0, Math.round((c.md + step) * 4) / 4);
+            document.getElementById("f-md").value = c.md.toFixed(2);
             calc();
             return;
         }
@@ -1211,6 +1355,12 @@
             return;
         }
 
+        if (t.id === "f-md") {
+            c.md = Math.max(0, parseFloat(t.value) || 0);
+            calc();
+            return;
+        }
+
         if (t.id === "f-ss") { c.ss = t.value; calc(); return; }
         if (t.id === "f-se") { c.se = t.value; calc(); return; }
 
@@ -1226,7 +1376,7 @@
     /* ===== Init ===== */
 
     load();
-    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30e";
+    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30g";
     refresh();
 
     setInterval(calc, 20000);
