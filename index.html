@@ -484,6 +484,110 @@
             border-top: none;
         }
 
+        .ppm-add {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 46px;
+            gap: 6px;
+            align-items: end;
+            margin-bottom: 10px;
+        }
+
+        .form-container .ppm-add input {
+            margin: 0;
+            padding: 7px;
+            font-size: 15px;
+        }
+
+        .form-container .ppm-add .add-btn {
+            width: 100%;
+            margin-top: 0;
+            padding: 9px 0;
+            font-size: 19px;
+            font-weight: 800;
+            line-height: 1;
+            border-radius: 10px;
+        }
+
+        .ppm-item {
+            display: grid;
+            grid-template-columns: 78px minmax(0, 1fr) 30px;
+            gap: 6px;
+            align-items: center;
+            padding: 7px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .ppm-item:last-of-type {
+            border-bottom: none;
+        }
+
+        .ppm-t {
+            font-weight: 700;
+        }
+
+        .ppm-v strong {
+            font-size: 15px;
+        }
+
+        .ppm-d {
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .ppm-d.up {
+            color: #2e7d32;
+        }
+
+        .ppm-d.down {
+            color: #b3261e;
+        }
+
+        .ppm-avg {
+            margin-top: 10px;
+            padding-top: 9px;
+            border-top: 2px solid #ccc;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .ppm-empty {
+            font-size: 12px;
+            opacity: 0.75;
+            line-height: 1.4;
+        }
+
+        .eff-box {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px solid #d7d7d7;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .eff-big {
+            font-size: 26px;
+            font-weight: 800;
+            line-height: 1.2;
+            text-align: center;
+            margin-top: 6px;
+        }
+
+        .eff-big.over {
+            color: #2e7d32;
+        }
+
+        .eff-big.under {
+            color: #b3261e;
+        }
+
+        .eff-note {
+            font-size: 12px;
+            opacity: 0.85;
+            text-align: center;
+            margin-top: 3px;
+        }
+
         /* ===== Output ===== */
         .output-container {
             margin-top: 20px;
@@ -701,10 +805,34 @@
                     <div class="goal-sub" id="o-goalsub"></div>
                 </div>
 
+                <div class="eff-box">
+                    <label for="f-final" style="margin-top:0">Final count</label>
+                    <input type="number" id="f-final" min="0" step="1" inputmode="numeric" placeholder="units produced" />
+                    <div class="eff-big" id="o-effpct"></div>
+                    <div class="eff-note" id="o-effnote"></div>
+                </div>
+
                 <button type="button" class="disc" id="disc-hours" aria-expanded="false" aria-controls="tbl">
                     <span id="disc-label">Hourly breakdown</span><span class="caret" id="disc-caret">&#9660;</span>
                 </button>
                 <div class="tbl-wrap"><table class="hrs" id="tbl"></table></div>
+
+                <button type="button" class="disc" id="disc-ppm" aria-expanded="false" aria-controls="ppm-body">
+                    <span id="ppm-label">Filler PPM</span><span class="caret" id="ppm-caret">&#9660;</span>
+                </button>
+                <div id="ppm-body" style="display:none">
+                    <div class="panel">
+                        <div class="panel-subtitle" id="ppm-need"></div>
+                        <div class="ppm-add">
+                            <div class="tf"><span class="cap">PPM</span>
+                                <input type="number" id="f-ppm-v" min="0" step="0.1" inputmode="decimal" placeholder="parts/min" /></div>
+                            <div class="tf"><span class="cap">Time</span>
+                                <input type="time" id="f-ppm-t" /></div>
+                            <button type="button" class="add-btn" id="ppm-add" aria-label="Add PPM reading">+</button>
+                        </div>
+                        <div id="ppm-list"></div>
+                    </div>
+                </div>
                 <div class="warn" id="warn"></div>
                 <div class="hint" id="hint"></div>
             </div>
@@ -748,7 +876,8 @@
     function newCfg() {
         return {
             job: "", uph: 0, ca: 1, cp: 1, md: 0,
-            ss: "16:15", se: "02:45", stops: defaultStops(), at: 0
+            ss: "16:15", se: "02:45", stops: defaultStops(),
+            ppm: [], fin: 0, at: 0
         };
     }
 
@@ -765,6 +894,7 @@
         sel: ALL_LINES[0],
         selBy: {},
         showHours: false,
+        showPpm: false,
         single: newCfg(),
         lines: {}
     };
@@ -799,6 +929,12 @@
         o.ca = c.ca === 0 ? 0 : Math.max(0, parseFloat(c.ca) || 1);
         o.cp = Math.max(1, parseFloat(c.cp) || 1);
         o.md = Math.max(0, Math.round((parseFloat(c.md) || 0) * 4) / 4);
+        o.fin = Math.max(0, parseFloat(c.fin) || 0);
+        if (Array.isArray(c.ppm)) {
+            o.ppm = c.ppm.filter(function (p) {
+                return p && typeof p.t === "string" && isFinite(p.v);
+            });
+        }
         o.ss = c.ss || o.ss;
         o.se = c.se || o.se;
         o.at = c.at || 0;
@@ -814,6 +950,7 @@
             if (s.dept && GROUPS.some(function (g) { return g.d === s.dept; })) state.dept = s.dept;
             if (s.selBy && typeof s.selBy === "object") state.selBy = s.selBy;
             state.showHours = s.showHours === true;
+            state.showPpm = s.showPpm === true;
             if (s.sel && ALL_LINES.indexOf(s.sel) >= 0) state.sel = s.sel;
             state.single = sane(s.single);
             if (s.lines && typeof s.lines === "object") {
@@ -1006,6 +1143,54 @@
         pk.innerHTML = h;
     }
 
+    /* Readings sorted by where they fall in the shift, not by clock value, so a
+       1 AM sample lands after a 10 PM one rather than at the top. */
+    function ppmSorted(c) {
+        var s = tm(c.ss);
+        return c.ppm.slice().sort(function (a, b) {
+            return ((tm(a.t) - s) % 1440 + 1440) % 1440 - ((tm(b.t) - s) % 1440 + 1440) % 1440;
+        });
+    }
+
+    function renderPpm(c, need) {
+        var list = document.getElementById("ppm-list");
+        var rows = ppmSorted(c);
+
+        document.getElementById("ppm-need").innerHTML = need > 0
+            ? "Standard works out to <strong>" + need.toFixed(1) +
+              " PPM</strong>. Log what the filler is actually doing; readings don't change the standard."
+            : "Enter a UPH to compare readings against the standard.";
+
+        if (!rows.length) {
+            list.innerHTML = '<div class="ppm-empty">No readings yet. The time defaults to now &mdash; ' +
+                "change it to log one you took earlier.</div>";
+            return;
+        }
+
+        var h = "", sum = 0;
+        rows.forEach(function (p, i) {
+            sum += p.v;
+            var d = need > 0 ? p.v - need : 0;
+            var cls = d >= 0 ? "up" : "down";
+            var idx = c.ppm.indexOf(p);
+            h += '<div class="ppm-item">' +
+                '<span class="ppm-t">' + fmt(tm(p.t)) + "</span>" +
+                '<span class="ppm-v"><strong>' + p.v.toFixed(1) + "</strong> PPM" +
+                (need > 0 ? ' <span class="ppm-d ' + cls + '">' + (d >= 0 ? "+" : "\u2212") +
+                    Math.abs(d).toFixed(1) + "</span>" : "") + "</span>" +
+                '<button type="button" class="stop-del" data-pd="' + idx + '" aria-label="Remove reading">&times;</button>' +
+                "</div>";
+        });
+
+        var avg = sum / rows.length;
+        h += '<div class="ppm-avg">Average ' + avg.toFixed(1) + " PPM" +
+            (need > 0 ? " \u00b7 " + Math.round(avg / need * 100) + "% of the " +
+                need.toFixed(1) + " needed" : "") +
+            " \u00b7 " + num(avg * 60) + " UPH equivalent</div>";
+
+        list.innerHTML = h;
+    }
+
     function renderCfg() {
         var c = cfg();
         if (!c) return;
@@ -1014,9 +1199,20 @@
         document.getElementById("f-crew-a").value = c.ca;
         document.getElementById("f-crew-p").value = c.cp;
         document.getElementById("f-md").value = c.md.toFixed(2);
+        document.getElementById("f-final").value = c.fin || "";
         document.getElementById("f-ss").value = c.ss;
         document.getElementById("f-se").value = c.se;
+        resetPpmForm();
         renderStops();
+    }
+
+    /* Blank the value but seed the time with the clock, so a reading taken right
+       now is one number and one tap. */
+    function resetPpmForm() {
+        var n = new Date();
+        document.getElementById("f-ppm-v").value = "";
+        document.getElementById("f-ppm-t").value =
+            String(n.getHours()).padStart(2, "0") + ":" + String(n.getMinutes()).padStart(2, "0");
     }
 
     function renderStops() {
@@ -1123,7 +1319,8 @@
             lbl.textContent = "Standard at " + now.label + suffix;
             big.textContent = num(earned);
             sub.textContent = "of " + num(total) + " for the shift \u00b7 " +
-                Math.round(total ? (earned / total) * 100 : 0) + "%";
+                Math.round(total ? (earned / total) * 100 : 0) + "% \u00b7 " +
+                (u / 60).toFixed(1) + " PPM";
         }
 
         var h = '<thead><tr><th class="l">Hr</th><th class="l">Window</th><th>Run</th><th>Goal</th><th>Cum.</th></tr></thead><tbody>';
@@ -1175,6 +1372,35 @@
             "<br>&bull; Highlighted rows lose minutes to unpaid time" +
             "<br>&bull; Lunch is entered as 30 min even though the stop runs 35" +
             "<br>&bull; A partial hour is prorated, not given a full goal";
+
+        var need = u / 60;
+        var effEl = document.getElementById("o-effpct");
+        var noteEl = document.getElementById("o-effnote");
+
+        if (!c.fin || !c.uph) {
+            effEl.className = "eff-big";
+            effEl.textContent = "";
+            noteEl.textContent = c.uph
+                ? "Enter the final count to see efficiency against the standard."
+                : "Enter a UPH and the final count to see efficiency.";
+        } else {
+            var pct = total > 0 ? (c.fin / total) * 100 : 0;
+            var diff = c.fin - total;
+            effEl.className = "eff-big " + (pct >= 100 ? "over" : "under");
+            effEl.textContent = pct.toFixed(1) + "%";
+            noteEl.textContent = num(c.fin) + " against a standard of " + num(total) +
+                " \u00b7 " + (diff >= 0 ? "+" : "\u2212") + num(Math.abs(diff)) + " units";
+        }
+
+        var pb = document.getElementById("ppm-body");
+        pb.style.display = state.showPpm ? "" : "none";
+        document.getElementById("disc-ppm").setAttribute("aria-expanded", state.showPpm ? "true" : "false");
+        document.getElementById("ppm-caret").innerHTML = state.showPpm ? "&#9650;" : "&#9660;";
+        document.getElementById("ppm-label").textContent =
+            (state.showPpm ? "Hide" : "Show") + " filler PPM" +
+            (c.uph ? " \u00b7 need " + need.toFixed(1) : "") +
+            (c.ppm.length ? " \u00b7 " + c.ppm.length + " logged" : "");
+        renderPpm(c, need);
 
         renderStamp();
         save();
@@ -1238,6 +1464,31 @@
             markEdit();
             c.stops.splice(parseInt(b.dataset.del, 10), 1);
             renderStops();
+            calc();
+            return;
+        }
+
+        if (b.id === "disc-ppm") {
+            state.showPpm = !state.showPpm;
+            if (state.showPpm) resetPpmForm();
+            calc();
+            return;
+        }
+
+        if (b.id === "ppm-add") {
+            var v = parseFloat(document.getElementById("f-ppm-v").value);
+            var tv = document.getElementById("f-ppm-t").value;
+            if (!isFinite(v) || v < 0 || !tv) return;
+            markEdit();
+            c.ppm.push({ t: tv, v: v });
+            resetPpmForm();
+            calc();
+            return;
+        }
+
+        if (b.dataset.pd !== undefined) {
+            markEdit();
+            c.ppm.splice(parseInt(b.dataset.pd, 10), 1);
             calc();
             return;
         }
@@ -1333,6 +1584,11 @@
     document.addEventListener("input", function (ev) {
         var t = ev.target, c = cfg();
         if (!c) return;
+
+        /* The PPM entry boxes hold nothing until the + is tapped, so typing in
+           them is not yet a change worth stamping. */
+        if (t.id === "f-ppm-v" || t.id === "f-ppm-t") return;
+
         markEdit();
 
         if (t.id === "f-job") { c.job = t.value; calc(); return; }
@@ -1351,6 +1607,12 @@
 
         if (t.id === "f-crew-p") {
             c.cp = Math.max(1, parseFloat(t.value) || 1);
+            calc();
+            return;
+        }
+
+        if (t.id === "f-final") {
+            c.fin = Math.max(0, parseFloat(t.value) || 0);
             calc();
             return;
         }
@@ -1376,7 +1638,7 @@
     /* ===== Init ===== */
 
     load();
-    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30g";
+    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30h";
     refresh();
 
     setInterval(calc, 20000);
