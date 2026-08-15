@@ -809,9 +809,9 @@
 
                     <div id="stops"></div>
 
-                    <button type="button" class="preset-btn" id="preset-default" style="margin-top:10px">Reset to default schedule</button>
+                    <button type="button" class="preset-btn" id="preset-default" style="margin-top:10px">Reset breaks &amp; stops to default</button>
                     <button type="button" id="addstop">+ Add stop</button>
-                    <button type="button" class="preset-btn" id="apply-all" style="margin-top:10px;display:none">Copy these times &amp; stops to every line</button>
+                    <button type="button" class="preset-btn" id="apply-all" style="margin-top:10px;display:none">Copy breaks &amp; stops to every line</button>
                 </div>
             </div>
 
@@ -1561,8 +1561,6 @@
 
         if (b.id === "preset-default") {
             markEdit();
-            c.ss = "16:15";
-            c.se = "02:45";
             c.stops = defaultStops();
             renderCfg();
             calc();
@@ -1575,8 +1573,6 @@
                 if (!state.lines[l]) state.lines[l] = newCfg();
                 var t = state.lines[l];
                 if (t === c) return;
-                t.ss = c.ss;
-                t.se = c.se;
                 t.stops = JSON.parse(JSON.stringify(c.stops));
             });
             renderPicker();
@@ -1681,7 +1677,19 @@
     /* ===== Init ===== */
 
     load();
-    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev 2026-07-30m";
+    /* Set at build time in UTC, rendered in whatever zone the device is in, so
+       the stamp reads correctly wherever the page is opened. */
+    var REV = "2026-08-15T07:26:00Z";
+    var revTxt;
+    try {
+        revTxt = new Date(REV).toLocaleString(undefined, {
+            year: "numeric", month: "short", day: "numeric",
+            hour: "numeric", minute: "2-digit"
+        });
+    } catch (e) {
+        revTxt = REV;
+    }
+    document.getElementById("rev-stamp").textContent = "uph.html \u00b7 rev " + revTxt;
     refresh();
 
     setInterval(calc, 20000);
