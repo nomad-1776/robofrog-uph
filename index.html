@@ -993,6 +993,7 @@
                     <input type="number" id="f-final" min="0" step="1" inputmode="numeric" placeholder="units produced" />
                     <div class="eff-big" id="o-effpct"></div>
                     <div class="eff-note" id="o-effnote"></div>
+                    <div class="eff-note" id="o-effpace"></div>
                 </div>
 
                 <button type="button" class="danger-btn" id="job-del" style="font-size:13px;padding:8px">Remove this job</button>
@@ -1001,6 +1002,23 @@
                     <span id="disc-label">Hourly breakdown</span><span class="caret" id="disc-caret">&#9660;</span>
                 </button>
                 <div class="tbl-wrap"><table class="hrs" id="tbl"></table></div>
+
+                <button type="button" class="disc" id="disc-cnt" aria-expanded="false" aria-controls="cnt-body">
+                    <span id="cnt-label">Counts</span><span class="caret" id="cnt-caret">&#9660;</span>
+                </button>
+                <div id="cnt-body" style="display:none">
+                    <div class="panel">
+                        <div class="panel-subtitle" id="cnt-need"></div>
+                        <div class="ppm-add">
+                            <div class="tf"><span class="cap">Count</span>
+                                <input type="number" id="f-cnt-v" min="0" step="1" inputmode="numeric" placeholder="running total" /></div>
+                            <div class="tf"><span class="cap">Time</span>
+                                <input type="time" id="f-cnt-t" /></div>
+                            <button type="button" class="add-btn" id="cnt-add" aria-label="Add count">+</button>
+                        </div>
+                        <div id="cnt-list"></div>
+                    </div>
+                </div>
 
                 <button type="button" class="disc" id="disc-ppm" aria-expanded="false" aria-controls="ppm-body">
                     <span id="ppm-label">Filler PPM</span><span class="caret" id="ppm-caret">&#9660;</span>
@@ -1064,7 +1082,7 @@
     function newJob(st, en) {
         return {
             id: "j" + (jid++) + "_" + Math.random().toString(36).slice(2, 6),
-            note: "", uph: 0, ca: 1, cp: 1, md: 0, fin: 0, ppm: [],
+            note: "", uph: 0, ca: 1, cp: 1, md: 0, fin: 0, ppm: [], cnt: [],
             st: st || "16:15", en: en || "02:45"
         };
     }
@@ -1117,6 +1135,7 @@
         showHours: false,
         showPpm: false,
         showStops: false,
+        showCnt: false,
         single: newCfg(),
         lines: {}
     };
@@ -1160,6 +1179,11 @@
                 return p && typeof p.t === "string" && isFinite(p.v);
             });
         }
+        if (Array.isArray(j.cnt)) {
+            o.cnt = j.cnt.filter(function (p) {
+                return p && typeof p.t === "string" && isFinite(p.v);
+            });
+        }
         return o;
     }
 
@@ -1197,6 +1221,7 @@
             state.showHours = s.showHours === true;
             state.showPpm = s.showPpm === true;
             state.showStops = s.showStops === true;
+            state.showCnt = s.showCnt === true;
             if (s.sel && ALL_LINES.indexOf(s.sel) >= 0) state.sel = s.sel;
             state.single = sane(s.single);
             if (s.lines && typeof s.lines === "object") {
@@ -1466,7 +1491,7 @@
 
         document.getElementById("ppm-need").innerHTML = need > 0
             ? "Standard works out to <strong>" + need.toFixed(1) +
-              " PPM</strong>. Log what the filler is actually doing; readings don't change the standard."
+              " PPM</strong>. Readings below are what the filler is doing at a moment; they don't change the standard."
             : "Enter a UPH to compare readings against the standard.";
 
         if (!rows.length) {
@@ -1513,6 +1538,7 @@
         document.getElementById("f-jst").value = j.st;
         document.getElementById("f-jen").value = j.en;
         resetPpmForm();
+        resetCntForm();
         renderStops();
     }
 
@@ -1520,8 +1546,15 @@
        now is one number and one tap. */
     function resetPpmForm() {
         var n = new Date();
+        var hhmm = String(n.getHours()).padStart(2, "0") + ":" + String(n.getMinutes()).padStart(2, "0");
         document.getElementById("f-ppm-v").value = "";
-        document.getElementById("f-ppm-t").value =
+        document.getElementById("f-ppm-t").value = hhmm;
+    }
+
+    function resetCntForm() {
+        var n = new Date();
+        document.getElementById("f-cnt-v").value = "";
+        document.getElementById("f-cnt-t").value =
             String(n.getHours()).padStart(2, "0") + ":" + String(n.getMinutes()).padStart(2, "0");
     }
 
@@ -1575,10 +1608,22 @@
             var total = runAdj / 60 * u;
             var val = "&mdash;", sub = "";
 
+            /* The row shows efficiency once a count exists, scored the same way
+               the card does it: against the standard earned by that reading. */
+            var lastC = null, so = tm(c.ss);
+            j.cnt.forEach(function (x) {
+                var xo = ((tm(x.t) - so) % 1440 + 1440) % 1440;
+                if (!lastC || xo > lastC.o) lastC = { o: xo, v: x.v };
+            });
+
             if (j.fin > 0 && j.uph) {
-                var pct = total > 0 ? (j.fin / total) * 100 : 0;
-                val = pct.toFixed(0) + "%";
-                sub = num(j.fin) + " / " + num(total);
+                val = (total > 0 ? (j.fin / total) * 100 : 0).toFixed(0) + "%";
+                sub = num(j.fin) + " / " + num(Math.round(total));
+            } else if (lastC && j.uph) {
+                var bMin = Math.max(0, prodIn(d, w, w.a, Math.max(w.a, Math.min(w.b, lastC.o))) - mdMin);
+                var bStd = bMin / 60 * u;
+                val = (bStd > 0 ? (lastC.v / bStd) * 100 : 0).toFixed(0) + "%";
+                sub = num(lastC.v) + " / " + num(Math.round(bStd));
             } else if (j.uph) {
                 if (now.phase === "pre" || now.off <= w.a) {
                     val = "&mdash;";
@@ -1605,6 +1650,50 @@
         h += gap(prevEnd, d.len, "unassigned");
         document.getElementById("job-list").innerHTML = h;
         if (armed && armed.indexOf("jdel:") === 0) armed = null;
+    }
+
+    /* Counts are cumulative readings. The interval between two of them is where
+       a real rate lives: units gained over productive minutes elapsed. */
+    function renderCounts(c, j, d, w) {
+        var list = document.getElementById("cnt-list");
+        var s0 = tm(c.ss);
+        function off(t) { return ((tm(t) - s0) % 1440 + 1440) % 1440; }
+
+        var rows = j.cnt.slice().sort(function (a, b) { return off(a.t) - off(b.t); });
+        if (!rows.length) {
+            list.innerHTML = '<div class="ppm-empty">No counts yet. The time defaults to now.</div>';
+            return null;
+        }
+
+        var u = effUph(j);
+        var h = "", prevV = 0, prevOff = w.a;
+
+        rows.forEach(function (p) {
+            var o = Math.max(w.a, Math.min(w.b, off(p.t)));
+            var gained = p.v - prevV;
+            var mins = prodIn(d, w, prevOff, o);
+            var rate = mins > 0 ? gained / mins : 0;
+            var need = u / 60;
+            var cls = need > 0 && rate >= need ? "up" : "down";
+            var idx = j.cnt.indexOf(p);
+
+            h += '<div class="ppm-item">' +
+                '<span class="ppm-t">' + fmt(tm(p.t)) + "</span>" +
+                '<span class="ppm-v"><strong>' + num(p.v) + "</strong>" +
+                (mins > 0
+                    ? ' <span class="ppm-d ' + cls + '">+' + num(gained) + " in " + mins +
+                      " min \u00b7 " + rate.toFixed(1) + " PPM</span>"
+                    : "") + "</span>" +
+                '<button type="button" class="stop-del" data-cd="' + idx +
+                '" aria-label="Remove count">&times;</button></div>';
+
+            prevV = p.v;
+            prevOff = o;
+        });
+
+        list.innerHTML = h;
+        var last = rows[rows.length - 1];
+        return { v: last.v, off: Math.max(w.a, Math.min(w.b, off(last.t))), t: last.t };
     }
 
     function renderStamp() {
@@ -1769,20 +1858,55 @@
         var effEl = document.getElementById("o-effpct");
         var noteEl = document.getElementById("o-effnote");
 
-        if (!j.fin || !j.uph) {
+        var paceEl = document.getElementById("o-effpace");
+        var latest = renderCounts(c, j, d, w);
+
+        /* The final count scores the whole job. A logged count scores against the
+           standard earned by the moment it was read, so it works mid-job. */
+        var useFin = j.fin > 0;
+        var val = useFin ? j.fin : (latest ? latest.v : 0);
+        var bMin = useFin ? runAdj
+            : (latest ? Math.max(0, prodIn(d, w, w.a, latest.off) - mdMin) : 0);
+        var basis = useFin ? total : bMin / 60 * u;
+
+        if (!val || !j.uph) {
             effEl.className = "eff-big";
             effEl.textContent = "";
             noteEl.textContent = j.uph
-                ? "Enter the final count to see efficiency against the standard."
-                : "Enter a UPH and the final count to see efficiency.";
+                ? "Enter the final count, or log one under Counts, to see efficiency."
+                : "Enter a UPH and a count to see efficiency.";
+            paceEl.textContent = "";
         } else {
-            var pct = total > 0 ? (j.fin / total) * 100 : 0;
-            var diff = j.fin - total;
+            var pct = basis > 0 ? (val / basis) * 100 : 0;
+            var diff = val - basis;
             effEl.className = "eff-big " + (pct >= 100 ? "over" : "under");
             effEl.textContent = pct.toFixed(1) + "%";
-            noteEl.textContent = num(j.fin) + " against a standard of " + num(total) +
+            noteEl.textContent = num(val) +
+                (useFin ? "" : " at " + fmt(tm(latest.t))) +
+                " against a standard of " + num(basis) +
                 " \u00b7 " + (diff >= 0 ? "+" : "\u2212") + num(Math.abs(diff)) + " units";
+
+            var left = runAdj - bMin;
+            paceEl.innerHTML = (!useFin && left > 0)
+                ? "Needs <strong>" + ((total - val) / left).toFixed(1) +
+                  " PPM</strong> over the remaining " + left + " min to finish on standard (" +
+                  num(total) + ")"
+                : "";
         }
+
+        var cb = document.getElementById("cnt-body");
+        cb.style.display = state.showCnt ? "" : "none";
+        var dcnt = document.getElementById("disc-cnt");
+        dcnt.className = state.showCnt ? "disc" : "disc shut";
+        dcnt.setAttribute("aria-expanded", state.showCnt ? "true" : "false");
+        document.getElementById("cnt-caret").innerHTML = state.showCnt ? "&#9650;" : "&#9660;";
+        document.getElementById("cnt-label").textContent =
+            (state.showCnt ? "Hide" : "Show") + " counts" +
+            (j.cnt.length ? " \u00b7 " + j.cnt.length + " logged" : "");
+        document.getElementById("cnt-need").innerHTML = j.uph
+            ? "Log the running total off the counter with the time you read it. Each entry shows the rate over that interval against the <strong>" +
+              (u / 60).toFixed(1) + " PPM</strong> needed."
+            : "Enter a UPH to compare counts against the standard.";
 
         document.getElementById("stops-body").style.display = state.showStops ? "" : "none";
         var dstops = document.getElementById("disc-stops");
@@ -1956,9 +2080,34 @@
             return;
         }
 
+        if (b.id === "disc-cnt") {
+            state.showCnt = !state.showCnt;
+            if (state.showCnt) resetCntForm();
+            calc();
+            return;
+        }
+
         if (b.id === "disc-ppm") {
             state.showPpm = !state.showPpm;
             if (state.showPpm) resetPpmForm();
+            calc();
+            return;
+        }
+
+        if (b.id === "cnt-add") {
+            var cv = parseFloat(document.getElementById("f-cnt-v").value);
+            var ct = document.getElementById("f-cnt-t").value;
+            if (!isFinite(cv) || cv < 0 || !ct) return;
+            markEdit();
+            job().cnt.push({ t: ct, v: cv });
+            resetCntForm();
+            calc();
+            return;
+        }
+
+        if (b.dataset.cd !== undefined) {
+            markEdit();
+            job().cnt.splice(parseInt(b.dataset.cd, 10), 1);
             calc();
             return;
         }
@@ -2073,6 +2222,7 @@
         /* The PPM entry boxes hold nothing until the + is tapped, so typing in
            them is not yet a change worth stamping. */
         if (t.id === "f-ppm-v" || t.id === "f-ppm-t") return;
+        if (t.id === "f-cnt-v" || t.id === "f-cnt-t") return;
 
         markEdit();
 
@@ -2133,7 +2283,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-08-15T09:10:00Z";
+    var REV = "2026-08-15T09:55:00Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
