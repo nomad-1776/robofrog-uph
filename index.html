@@ -2055,39 +2055,24 @@
             var nf = document.getElementById("f-newjob");
             var ord = jobsOrdered(c);
             var last = ord[ord.length - 1];
-            var d0 = build(c, last);
-            var lw = jobWin(d0);
 
-            /* Sign off at the clock if we're mid-shift, otherwise at the end of
-               the last job. Clamped so the split always leaves both sides real. */
-            var n0 = nowInfo(d0);
-            var cut = (n0.phase === "in" && n0.off > lw.a && n0.off < d0.len)
-                ? Math.round(n0.off / 15) * 15
-                : lw.b;
-            if (cut <= lw.a || cut >= d0.len) cut = Math.min(lw.a + 60, d0.len - 15);
-            if (cut <= lw.a) cut = lw.a;
+            /* The new job starts where the last one ends and runs the same length.
+               Nothing already entered is touched. */
+            var st = last ? last.en : "16:15";
+            var len = last
+                ? (((tm(last.en) - tm(last.st)) % 1440 + 1440) % 1440 || 60)
+                : 60;
+            var m = (tm(st) + len) % 1440;
+            var en = String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
 
-            function atOff(o) {
-                var m = ((d0.s + o) % 1440 + 1440) % 1440;
-                return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
-            }
-
-            var nj = newJob(atOff(cut), last.en);
+            var nj = newJob(st, en);
             nj.note = nf.value.trim();
-            if (last) last.en = nj.st;
             c.jobs.push(nj);
             c.sel = nj.id;
             nf.value = "";
             renderCfg();
             calc();
             return;
-        }
-
-        if (b.dataset.jdel !== undefined) {
-            if (armed !== "jdel:" + b.dataset.jdel) { setArmed("jdel:" + b.dataset.jdel); return; }
-            setArmed(null);
-            c.sel = b.dataset.jdel;
-            b = { id: "job-del", dataset: {}, armedOk: true };
         }
 
         if (b.id === "job-del") {
@@ -2334,7 +2319,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-08-15T10:50:00Z";
+    var REV = "2026-08-15T11:02:00Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
