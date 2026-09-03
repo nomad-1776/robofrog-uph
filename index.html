@@ -2075,6 +2075,15 @@
             return;
         }
 
+        /* The row X arms on the first tap, then hands off to the card's remover so
+           both routes behave identically. */
+        if (b.dataset.jdel !== undefined) {
+            if (armed !== "jdel:" + b.dataset.jdel) { setArmed("jdel:" + b.dataset.jdel); return; }
+            setArmed(null);
+            c.sel = b.dataset.jdel;
+            b = { id: "job-del", dataset: {}, armedOk: true };
+        }
+
         if (b.id === "job-del") {
             if (!b.armedOk) {
                 if (armed !== "job-del") { setArmed("job-del"); return; }
@@ -2319,7 +2328,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-08-15T11:02:00Z";
+    var REV = "2026-08-15T11:14:00Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
