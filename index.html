@@ -354,6 +354,18 @@
             align-items: start;
         }
 
+        .form-container select {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+            background: #fff;
+            font-family: Arial, sans-serif;
+        }
+
         .rate-row3 {
             grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 72px;
             gap: 8px;
@@ -427,6 +439,63 @@
             font-weight: 700;
             color: #a35c00;
             margin: 6px 0 0 0;
+        }
+
+        .brk-item {
+            padding: 9px 0 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .brk-item:last-child {
+            border-bottom: none;
+        }
+
+        .brk-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .brk-tag {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 2px 6px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .brk-item.charge .brk-tag {
+            background: #fdecea;
+            color: #b3261e;
+        }
+
+        .brk-item.credit .brk-tag {
+            background: #eef7ee;
+            color: #2e7d32;
+        }
+
+        .brk-item.run .brk-tag {
+            background: #f2f2f2;
+            color: #555;
+        }
+
+        .brk-run {
+            font-size: 22px;
+            font-weight: 800;
+            color: #2e7d32;
+            margin-top: 4px;
+        }
+
+        .brk-sub {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 2px;
+            line-height: 1.4;
         }
 
         .md-row {
@@ -1002,12 +1071,14 @@
             </div>
             <div class="eff" id="o-eff"></div>
 
-            <label for="f-md">Maintenance down (hours)</label>
-            <div class="md-row">
-                <button type="button" class="step-btn" data-md="-0.25" aria-label="Less maintenance down">&minus;</button>
-                <input type="number" id="f-md" min="0" step="0.25" inputmode="decimal" aria-label="Maintenance down hours" />
-                <button type="button" class="step-btn" data-md="0.25" aria-label="More maintenance down">+</button>
-            </div>
+
+            <label for="f-shift">Shift template</label>
+            <select id="f-shift">
+                <option value="">Custom / leave as entered</option>
+                <option value="06:00|16:30">1st &mdash; 6:00 AM to 4:30 PM</option>
+                <option value="16:15|02:45">2nd &mdash; 4:15 PM to 2:45 AM</option>
+                <option value="21:45|06:15">3rd &mdash; 9:45 PM to 6:15 AM</option>
+            </select>
 
             <div class="rate-row" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
                 <div class="fld">
@@ -1048,6 +1119,75 @@
                     <span id="disc-label">Hourly breakdown</span><span class="caret" id="disc-caret">&#9660;</span>
                 </button>
                 <div class="tbl-wrap"><table class="hrs" id="tbl"></table></div>
+
+                <button type="button" class="disc" id="disc-brk" aria-expanded="false" aria-controls="brk-body">
+                    <span id="brk-label">Time breakdown</span><span class="caret" id="brk-caret">&#9660;</span>
+                </button>
+                <div id="brk-body" style="display:none">
+                    <div class="panel">
+                        <div class="panel-subtitle">Hours against this job, in quarter-hour steps. MD and M/T come off the standard; C/O and down time stay in it, so they have to be made up.</div>
+                        <div class="brk-item charge">
+                            <div class="brk-head"><strong>C/O changeover</strong><span class="brk-tag">counts against</span></div>
+                            <div class="md-row">
+                                <button type="button" class="step-btn" data-brk="co" data-step="-0.25" aria-label="Less C/O changeover">&minus;</button>
+                                <input type="number" id="f-co" min="0" step="0.25" inputmode="decimal" aria-label="C/O changeover hours" />
+                                <button type="button" class="step-btn" data-brk="co" data-step="0.25" aria-label="More C/O changeover">+</button>
+                            </div>
+                        </div>
+                        <div class="brk-item charge">
+                            <div class="brk-head"><strong>Down time</strong><span class="brk-tag">counts against</span></div>
+                            <div class="md-row">
+                                <button type="button" class="step-btn" data-brk="dn" data-step="-0.25" aria-label="Less Down time">&minus;</button>
+                                <input type="number" id="f-dn" min="0" step="0.25" inputmode="decimal" aria-label="Down time hours" />
+                                <button type="button" class="step-btn" data-brk="dn" data-step="0.25" aria-label="More Down time">+</button>
+                            </div>
+                        </div>
+                        <div class="brk-item credit">
+                            <div class="brk-head"><strong>MD maintenance down</strong><span class="brk-tag">deducted</span></div>
+                            <div class="md-row">
+                                <button type="button" class="step-btn" data-brk="md" data-step="-0.25" aria-label="Less MD maintenance down">&minus;</button>
+                                <input type="number" id="f-md" min="0" step="0.25" inputmode="decimal" aria-label="MD maintenance down hours" />
+                                <button type="button" class="step-btn" data-brk="md" data-step="0.25" aria-label="More MD maintenance down">+</button>
+                            </div>
+                        </div>
+                        <div class="brk-item credit">
+                            <div class="brk-head"><strong>M/T meeting &amp; training</strong><span class="brk-tag">deducted</span></div>
+                            <div class="md-row">
+                                <button type="button" class="step-btn" data-brk="mt" data-step="-0.25" aria-label="Less M/T meeting &amp; training">&minus;</button>
+                                <input type="number" id="f-mt" min="0" step="0.25" inputmode="decimal" aria-label="M/T meeting &amp; training hours" />
+                                <button type="button" class="step-btn" data-brk="mt" data-step="0.25" aria-label="More M/T meeting &amp; training">+</button>
+                            </div>
+                        </div>
+                        <div class="brk-item run">
+                            <div class="brk-head"><strong>Run time</strong><span class="brk-tag">calculated</span></div>
+                            <div class="brk-run" id="o-runcalc">&mdash;</div>
+                            <div class="brk-sub" id="o-runsub"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="disc" id="disc-crew" aria-expanded="false" aria-controls="crew-body">
+                    <span id="crew-label">Crew timeline</span><span class="caret" id="crew-caret">&#9660;</span>
+                </button>
+                <div id="crew-body" style="display:none">
+                    <div class="panel">
+                        <div class="panel-subtitle" id="crew-need"></div>
+                        <div class="ppm-add" style="grid-template-columns:96px 62px minmax(0,1fr) 46px;align-items:start">
+                            <div class="tf"><span class="cap">From</span>
+                                <input type="time" id="f-cw-t" /></div>
+                            <div class="tf"><span class="cap">Crew</span>
+                                <div class="frac" style="margin-top:0">
+                                    <input type="number" id="f-cw-n" min="0" step="1" inputmode="numeric" aria-label="On hand" />
+                                    <hr />
+                                    <input type="number" id="f-cw-p" min="1" step="1" inputmode="numeric" aria-label="Planned" />
+                                </div></div>
+                            <div class="tf"><span class="cap">Note</span>
+                                <input type="text" id="f-cw-note" placeholder="optional" /></div>
+                            <button type="button" class="add-btn" id="cw-add" aria-label="Add crew change">+</button>
+                        </div>
+                        <div id="crew-list"></div>
+                    </div>
+                </div>
 
                 <button type="button" class="disc" id="disc-cnt" aria-expanded="false" aria-controls="cnt-body">
                     <span id="cnt-label">Counts</span><span class="caret" id="cnt-caret">&#9660;</span>
@@ -1128,7 +1268,7 @@
     function newJob(st, en) {
         return {
             id: "j" + (jid++) + "_" + Math.random().toString(36).slice(2, 6),
-            note: "", uph: 0, ca: 1, cp: 1, md: 0, fin: 0, tgt: 0, ppm: [], cnt: [],
+            note: "", uph: 0, ca: 1, cp: 1, md: 0, mt: 0, co: 0, dn: 0, fin: 0, tgt: 0, ppm: [], cnt: [], crew: [],
             st: st || "16:15", en: en || "02:45"
         };
     }
@@ -1156,27 +1296,24 @@
         return baseUph(j) * (a / p);
     }
 
-    /* One of these per line, plus one for single-line mode. Shift window and
-       stops belong to the line; everything else belongs to a job. */
-    function newCfg() {
-        var c = { stops: defaultStops(), jobs: [], sel: null, at: 0 };
-        var j = newJob("16:15", "02:45");
-        c.jobs.push(j);
-        c.sel = j.id;
-        return c;
+    /* Units earned over a stretch: weighted minutes at the job's base rate. */
+    function unitsIn(d, j, from, to) {
+        return weightedIn(d, j, from, to) / 60 * baseUph(j);
     }
 
-    /* The rate actually expected, after scaling for a short crew. */
-    /* UPH is the standard. Target PPM is recorded alongside it for tracking and
-       comparison; it doesn't feed the goal. */
-    function baseUph(j) {
-        return j.uph;
+    /* Hours that come off the standard: maintenance down and meeting/training.
+       Changeover and ordinary downtime stay in, so they have to be made up. */
+    function deductHrs(j) {
+        return Math.max(0, j.md) + Math.max(0, j.mt);
     }
 
-    function effUph(j) {
-        var p = Math.max(1, j.cp || 1);
-        var a = Math.max(0, j.ca === 0 ? 0 : (j.ca || 1));
-        return baseUph(j) * (a / p);
+    /* A deduction is a lump with no clock position, so it is removed at the
+       average crew level over the job rather than at whatever crew was on. */
+    function mdWeighted(d, j) {
+        var prod = prodIn(d, { a: 0, b: d.len });
+        if (prod <= 0) return 0;
+        var frac = weightedIn(d, j) / prod;
+        return deductHrs(j) * 60 * frac;
     }
 
     var state = {
@@ -1188,6 +1325,8 @@
         showPpm: false,
         showStops: false,
         showCnt: false,
+        showCrew: false,
+        showBrk: false,
         single: newCfg(),
         lines: {}
     };
@@ -1221,7 +1360,9 @@
         o.uph = Math.max(0, parseFloat(j.uph) || 0);
         o.ca = j.ca === 0 ? 0 : Math.max(0, parseFloat(j.ca) || 1);
         o.cp = Math.max(1, parseFloat(j.cp) || 1);
-        o.md = Math.max(0, Math.round((parseFloat(j.md) || 0) * 4) / 4);
+        ["md", "mt", "co", "dn"].forEach(function (k) {
+            o[k] = Math.max(0, Math.round((parseFloat(j[k]) || 0) * 4) / 4);
+        });
         o.fin = Math.max(0, parseFloat(j.fin) || 0);
         o.tgt = Math.max(0, parseFloat(j.tgt) || 0);
         o.st = j.st || o.st;
@@ -1230,6 +1371,18 @@
         if (Array.isArray(j.ppm)) {
             o.ppm = j.ppm.filter(function (p) {
                 return p && typeof p.t === "string" && isFinite(p.v);
+            });
+        }
+        if (Array.isArray(j.crew)) {
+            o.crew = j.crew.filter(function (x) {
+                return x && typeof x.t === "string" && isFinite(x.n);
+            }).map(function (x) {
+                return {
+                    t: x.t,
+                    n: Math.max(0, parseFloat(x.n) || 0),
+                    p: Math.max(1, parseFloat(x.p) || 1),
+                    note: x.note || ""
+                };
             });
         }
         if (Array.isArray(j.cnt)) {
@@ -1273,6 +1426,8 @@
             state.showPpm = s.showPpm === true;
             state.showStops = s.showStops === true;
             state.showCnt = s.showCnt === true;
+            state.showCrew = s.showCrew === true;
+            state.showBrk = s.showBrk === true;
             if (s.sel && ALL_LINES.indexOf(s.sel) >= 0) state.sel = s.sel;
             state.single = sane(s.single);
             if (s.lines && typeof s.lines === "object") {
@@ -1383,6 +1538,49 @@
     /* Each job owns its grid, so its window is simply the whole of it. */
     function jobWin(d) {
         return { a: 0, b: d.len };
+    }
+
+    /* Crew on hand at a given offset. With no timeline it's the job's fraction;
+       with one, whichever segment covers that minute. */
+    function crewAt(d, j, off) {
+        var base = Math.max(0, j.ca) / Math.max(1, j.cp);
+        if (!j.crew.length) return base;
+        var segs = crewSegs(d, j);
+        for (var i = 0; i < segs.length; i++) {
+            if (off >= segs[i].a && off < segs[i].b) return segs[i].n / Math.max(1, segs[i].p);
+        }
+        return base;
+    }
+
+    /* Timeline entries resolved into windows. Each runs until the next starts;
+       the last runs to the end of the job. */
+    function crewSegs(d, j) {
+        var out = j.crew.map(function (x) {
+            return {
+                a: Math.max(0, Math.min(d.len, ((tm(x.t) - d.s) % 1440 + 1440) % 1440)),
+                n: Math.max(0, x.n),
+                p: Math.max(1, x.p || 1),
+                note: x.note || ""
+            };
+        }).sort(function (p, q) { return p.a - q.a; });
+
+        out.forEach(function (x, i) { x.b = i < out.length - 1 ? out[i + 1].a : d.len; });
+        if (out.length && out[0].a > 0) {
+            out.unshift({ a: 0, b: out[0].a, n: j.ca, p: Math.max(1, j.cp), note: "" });
+        }
+        return out;
+    }
+
+    /* Productive minutes weighted by how much of the crew was there. This is the
+       figure the standard is built on once a timeline exists. */
+    function weightedIn(d, j, from, to) {
+        var lo = from === undefined ? 0 : Math.max(0, from);
+        var hi = to === undefined ? d.len : Math.min(d.len, to);
+        var w = 0;
+        for (var k = lo; k < hi; k++) {
+            if (d.flag[k] === 1) w += Math.max(0, crewAt(d, j, k));
+        }
+        return w;
     }
 
     /* Productive minutes inside a job's window, between two offsets. */
@@ -1579,13 +1777,20 @@
         document.getElementById("f-uph").value = j.uph || "";
         document.getElementById("f-crew-a").value = j.ca;
         document.getElementById("f-crew-p").value = j.cp;
-        document.getElementById("f-md").value = j.md.toFixed(2);
+        ["md", "mt", "co", "dn"].forEach(function (k) {
+            document.getElementById("f-" + k).value = j[k].toFixed(2);
+        });
         document.getElementById("f-final").value = j.fin || "";
         document.getElementById("f-tgt").value = j.tgt || "";
+        var sel = document.getElementById("f-shift");
+        sel.value = [j.st + "|" + j.en, ""].filter(function (v) {
+            return !v || ["06:00|16:30", "16:15|02:45", "21:45|06:15"].indexOf(v) >= 0;
+        })[0];
         document.getElementById("f-jst").value = j.st;
         document.getElementById("f-jen").value = j.en;
         resetPpmForm();
         resetCntForm();
+        resetCwForm();
         renderStops();
     }
 
@@ -1596,6 +1801,15 @@
         var hhmm = String(n.getHours()).padStart(2, "0") + ":" + String(n.getMinutes()).padStart(2, "0");
         document.getElementById("f-ppm-v").value = "";
         document.getElementById("f-ppm-t").value = hhmm;
+    }
+
+    function resetCwForm() {
+        var j = job();
+        var last = j && j.crew.length ? j.crew[j.crew.length - 1] : null;
+        document.getElementById("f-cw-n").value = "";
+        document.getElementById("f-cw-p").value = last ? last.p : (j ? Math.max(1, j.cp) : 1);
+        document.getElementById("f-cw-note").value = "";
+        document.getElementById("f-cw-t").value = j ? j.st : "";
     }
 
     function resetCntForm() {
@@ -1650,9 +1864,10 @@
             prevEndKey = key(j.en);
 
             var u = effUph(j);
-            var mdMin = j.md * 60;
+            var mdMin = deductHrs(j) * 60;
+            var mdW = mdWeighted(d, j);
             var runAdj = Math.max(0, prodIn(d, w) - mdMin);
-            var total = runAdj / 60 * u;
+            var total = Math.max(0, weightedIn(d, j) - mdW) / 60 * baseUph(j);
             var val = "&mdash;", sub = "";
 
             var lastC = null;
@@ -1665,16 +1880,15 @@
                 val = (total > 0 ? (j.fin / total) * 100 : 0).toFixed(0) + "%";
                 sub = num(j.fin) + " / " + num(Math.round(total));
             } else if (lastC && baseUph(j)) {
-                var bMin = Math.max(0, prodIn(d, w, 0, lastC.o) - mdMin);
-                var bStd = bMin / 60 * u;
+                var bStd = Math.max(0, weightedIn(d, j, 0, lastC.o) - mdW) / 60 * baseUph(j);
                 val = (bStd > 0 ? (lastC.v / bStd) * 100 : 0).toFixed(0) + "%";
                 sub = num(lastC.v) + " / " + num(Math.round(bStd));
             } else if (baseUph(j)) {
                 if (now.phase === "pre") {
                     sub = num(total) + " goal";
                 } else {
-                    var e = Math.max(0, prodIn(d, w, 0, Math.min(now.off, d.len)) - mdMin);
-                    val = num(e / 60 * u);
+                    var e = Math.max(0, weightedIn(d, j, 0, Math.min(now.off, d.len)) - mdW);
+                    val = num(e / 60 * baseUph(j));
                     sub = "of " + num(total);
                 }
             }
@@ -1716,7 +1930,8 @@
             var gained = p.v - prevV;
             var mins = prodIn(d, w, prevOff, o);
             var rate = mins > 0 ? gained / mins : 0;
-            var need = u / 60;
+            var wm = weightedIn(d, j, prevOff, o);
+            var need = mins > 0 ? (wm / mins) * (baseUph(j) / 60) : u / 60;
             var cls = need > 0 && rate >= need ? "up" : "down";
             var idx = j.cnt.indexOf(p);
 
@@ -1737,6 +1952,40 @@
         list.innerHTML = h;
         var last = rows[rows.length - 1];
         return { v: last.v, off: Math.max(w.a, Math.min(w.b, off(last.t))), t: last.t };
+    }
+
+    function renderCrew(c, j, d) {
+        var list = document.getElementById("crew-list");
+        var p = Math.max(1, j.cp || 1);
+
+        if (!j.crew.length) {
+            list.innerHTML = '<div class="ppm-empty">No changes logged &mdash; the crew box above (' +
+                j.ca + "/" + p + ') applies to the whole job. Add an entry for each time the crew ' +
+                "changes; each one runs until the next one starts.</div>";
+            return;
+        }
+
+        var segs = crewSegs(d, j);
+        var h = "";
+        segs.forEach(function (sg) {
+            var idx = -1;
+            for (var i = 0; i < j.crew.length; i++) {
+                if (((tm(j.crew[i].t) - d.s) % 1440 + 1440) % 1440 === sg.a) { idx = i; break; }
+            }
+            var mins = prodIn(d, { a: 0, b: d.len }, sg.a, sg.b);
+            h += '<div class="ppm-item" style="grid-template-columns:minmax(0,1fr) 30px">' +
+                "<span><span class=\"ppm-t\">" + fmt(d.s + sg.a) + "\u2013" + fmt(d.s + sg.b) +
+                "</span> \u00b7 <strong>" + sg.n + "/" + sg.p + "</strong>" +
+                (sg.note ? ' <span style="opacity:.75">' + esc(sg.note) + "</span>" : "") +
+                '<span class="jrow-w">' + mins + " run min \u00b7 " +
+                num(unitsIn(d, j, sg.a, sg.b)) + " units</span></span>" +
+                (idx >= 0
+                    ? '<button type="button" class="stop-del" data-cw="' + idx +
+                      '" aria-label="Remove">&times;</button>'
+                    : "<span></span>") +
+                "</div>";
+        });
+        list.innerHTML = h;
     }
 
     function renderStamp() {
@@ -1779,41 +2028,53 @@
         var u = effUph(j), jb = j.note.trim();
         var short = baseUph(j) > 0 && u !== baseUph(j);
         var now = nowInfo(d);
-        var mdMin = Math.max(0, j.md) * 60;
+        var mdMin = deductHrs(j) * 60;
 
         var winMin = w.b - w.a;
         var prod = prodIn(d, w);
         var unpaidIn = winMin - prod;
         var runAdj = Math.max(0, prod - mdMin);
-        var total = runAdj / 60 * u;
+
+        var mdW = mdWeighted(d, j);
+        var wAll = Math.max(0, weightedIn(d, j) - mdW);
+        var total = wAll / 60 * baseUph(j);
 
         var upto = Math.max(w.a, Math.min(now.off, w.b));
         var earnedMin = Math.max(0, prodIn(d, w, w.a, upto) - mdMin);
-        var earned = earnedMin / 60 * u;
+        var wNow = Math.max(0, weightedIn(d, j, 0, upto) - mdW);
+        var earned = wNow / 60 * baseUph(j);
 
         renderJobs(c);
         document.getElementById("jobcard-head").textContent =
             jobTitle(c, j) + " \u00b7 " + fmt(d.s + w.a) + "\u2013" + fmt(d.s + w.b);
 
-        var mdEl = document.getElementById("f-md");
-        mdEl.className = j.md > 0 ? "set" : "";
-        document.querySelector('[data-md="-0.25"]').disabled = j.md <= 0;
+        ["md", "mt", "co", "dn"].forEach(function (k) {
+            var el = document.getElementById("f-" + k);
+            if (el) el.className = j[k] > 0 ? "set" : "";
+            var minus = document.querySelector('[data-brk="' + k + '"][data-step="-0.25"]');
+            if (minus) minus.disabled = j[k] <= 0;
+        });
 
         document.getElementById("frac-box").className = short ? "frac set" : "frac";
-        document.getElementById("o-eff").textContent = short
+        document.getElementById("o-eff").textContent = j.crew.length
+            ? "Crew timeline in use \u2014 " + j.crew.length + " change" +
+              (j.crew.length > 1 ? "s" : "") + " logged; the box above is ignored"
+            : short
             ? "Crew " + j.ca + "/" + j.cp + " \u2014 standard adjusted to " +
               num(u) + " UPH (from " + num(baseUph(j)) + ")"
             : "";
 
         document.getElementById("o-len").textContent = (winMin / 60).toFixed(2) + " hr (" + winMin + " min)";
         document.getElementById("o-unpaid").textContent = unpaidIn + " min";
-        document.getElementById("o-md").textContent = j.md > 0
-            ? "\u2212" + j.md.toFixed(2) + " hr (" + Math.round(mdMin) + " min)"
+        var ded = deductHrs(j);
+        document.getElementById("o-md").textContent = ded > 0
+            ? "\u2212" + ded.toFixed(2) + " hr (" + Math.round(mdMin) + " min)" +
+              (j.md > 0 && j.mt > 0 ? "  MD " + j.md.toFixed(2) + " + M/T " + j.mt.toFixed(2) : "")
             : "none";
         document.getElementById("o-exp").textContent = (prod / 60).toFixed(2) + " hr (" + prod + " min)";
         document.getElementById("o-run").textContent = (runAdj / 60).toFixed(2) + " hr (" + runAdj + " min)";
         document.querySelector(".output-row.actual").className =
-            "output-row actual" + (j.md > 0 ? " md" : "");
+            "output-row actual" + (ded > 0 ? " md" : "");
 
         var lbl = document.getElementById("o-goallabel");
         var big = document.getElementById("o-goal");
@@ -1847,7 +2108,7 @@
             if (hi <= lo) return;
             shown++;
             var pm = prodIn(d, w, r.off, r.off + r.blk);
-            var g = (pm / 60) * u;
+            var g = unitsIn(d, j, r.off, r.off + r.blk);
             cum += g;
             var isNow = now.phase === "in" && now.off >= r.off && now.off < r.off + r.blk;
             h += '<tr class="' + (pm < hi - lo ? "hasunpaid " : "") + (isNow ? "nowrow" : "") + '">' +
@@ -1858,13 +2119,13 @@
                 "<td>" + (baseUph(j) ? num(g) : "\u2014") + "</td>" +
                 "<td>" + (baseUph(j) ? num(cum) : "\u2014") + "</td></tr>";
         });
-        h += '<tr class="foot"><td class="l" colspan="2">' + (j.md > 0 ? "Scheduled" : "Total") +
+        h += '<tr class="foot"><td class="l" colspan="2">' + (ded > 0 ? "Scheduled" : "Total") +
             "</td><td>" + prod + " min</td><td>" +
             (baseUph(j) ? num(cum) : "\u2014") + "</td><td></td></tr>";
 
-        if (j.md > 0) {
-            h += '<tr class="foot2"><td class="l" colspan="2">Less MD</td><td>&minus;' + Math.round(mdMin) +
-                " min</td><td>&minus;" + num(Math.min(cum, mdMin / 60 * u)) + "</td><td></td></tr>" +
+        if (ded > 0) {
+            h += '<tr class="foot2"><td class="l" colspan="2">Less MD/MT</td><td>&minus;' + Math.round(mdMin) +
+                " min</td><td>&minus;" + num(Math.min(cum, mdW / 60 * baseUph(j))) + "</td><td></td></tr>" +
                 '<tr class="foot2"><td class="l" colspan="2">Standard</td><td>' + runAdj +
                 " min</td><td>" + (baseUph(j) ? num(total) : "\u2014") + "</td><td></td></tr>";
         }
@@ -1886,7 +2147,7 @@
             : "";
 
         document.getElementById("hint").innerHTML = "Notes:" +
-            (j.md > 0 ? "<br>&bull; MD comes off the standard, so it doesn't count against the line" : "") +
+            (ded > 0 ? "<br>&bull; MD and M/T come off the standard; C/O and down time stay in it" : "") +
             (short ? "<br>&bull; Crew " + j.ca + "/" + j.cp + " scales the rate; " +
                 num(j.uph / Math.max(1, j.cp)) + " UPH per person" : "") +
             "<br>&bull; Paid breaks stay in the standard, so those hours keep a full goal" +
@@ -1908,7 +2169,8 @@
         var val = useFin ? j.fin : (latest ? latest.v : 0);
         var bMin = useFin ? runAdj
             : (latest ? Math.max(0, prodIn(d, w, w.a, latest.off) - mdMin) : 0);
-        var basis = useFin ? total : bMin / 60 * u;
+        var basis = useFin ? total
+            : (latest ? Math.max(0, weightedIn(d, j, 0, latest.off) - mdW) / 60 * baseUph(j) : 0);
 
         if (!val || !baseUph(j)) {
             effEl.className = "eff-big";
@@ -1934,6 +2196,51 @@
                   num(total) + ")"
                 : "";
         }
+
+        /* Run time is what's left after every logged category comes out of the
+           productive minutes. Purely descriptive; only MD and M/T move the goal. */
+        var otherMin = (Math.max(0, j.co) + Math.max(0, j.dn)) * 60;
+        var runCalc = Math.max(0, prod - mdMin - otherMin);
+        var over = (mdMin + otherMin) > prod;
+
+        document.getElementById("o-runcalc").textContent =
+            (runCalc / 60).toFixed(2) + " hr (" + Math.round(runCalc) + " min)";
+        document.getElementById("o-runsub").innerHTML = over
+            ? "<span style=\"color:#b3261e;font-weight:700\">Logged time exceeds the " +
+              (prod / 60).toFixed(2) + " hr available in this job</span>"
+            : (prod / 60).toFixed(2) + " hr productive, less C/O " + j.co.toFixed(2) +
+              ", down " + j.dn.toFixed(2) + ", MD " + j.md.toFixed(2) + ", M/T " + j.mt.toFixed(2);
+
+        var bb = document.getElementById("brk-body");
+        bb.style.display = state.showBrk ? "" : "none";
+        var dbrk = document.getElementById("disc-brk");
+        dbrk.className = state.showBrk ? "disc" : "disc shut";
+        dbrk.setAttribute("aria-expanded", state.showBrk ? "true" : "false");
+        document.getElementById("brk-caret").innerHTML = state.showBrk ? "&#9650;" : "&#9660;";
+
+        var tags = [];
+        if (j.co > 0) tags.push("C/O " + j.co.toFixed(2));
+        if (j.dn > 0) tags.push("down " + j.dn.toFixed(2));
+        if (j.md > 0) tags.push("MD " + j.md.toFixed(2));
+        if (j.mt > 0) tags.push("M/T " + j.mt.toFixed(2));
+        document.getElementById("brk-label").textContent =
+            (state.showBrk ? "Hide" : "Show") + " time breakdown" +
+            (tags.length ? " \u00b7 " + tags.join(" \u00b7 ") : " \u00b7 run " + (runCalc / 60).toFixed(2));
+
+        var wb = document.getElementById("crew-body");
+        wb.style.display = state.showCrew ? "" : "none";
+        var dcw = document.getElementById("disc-crew");
+        dcw.className = state.showCrew ? "disc" : "disc shut";
+        dcw.setAttribute("aria-expanded", state.showCrew ? "true" : "false");
+        document.getElementById("crew-caret").innerHTML = state.showCrew ? "&#9650;" : "&#9660;";
+        document.getElementById("crew-label").textContent =
+            (state.showCrew ? "Hide" : "Show") + " crew timeline" +
+            (j.crew.length ? " \u00b7 " + j.crew.length + " change" + (j.crew.length > 1 ? "s" : "")
+                : " \u00b7 " + j.ca + "/" + Math.max(1, j.cp));
+        document.getElementById("crew-need").innerHTML =
+            "Each entry runs until the next one starts, and carries its own crew fraction \u2014 " +
+            "2/3 means two of the three the rate assumes. Use 0 on top for a meeting or training.";
+        renderCrew(c, j, d);
 
         var cb = document.getElementById("cnt-body");
         cb.style.display = state.showCnt ? "" : "none";
@@ -2121,6 +2428,41 @@
             return;
         }
 
+        if (b.id === "disc-brk") {
+            state.showBrk = !state.showBrk;
+            calc();
+            return;
+        }
+
+        if (b.id === "disc-crew") {
+            state.showCrew = !state.showCrew;
+            if (state.showCrew) resetCwForm();
+            calc();
+            return;
+        }
+
+        if (b.id === "cw-add") {
+            var wn = parseFloat(document.getElementById("f-cw-n").value);
+            var wt = document.getElementById("f-cw-t").value;
+            if (!isFinite(wn) || wn < 0 || !wt) return;
+            markEdit();
+            job().crew.push({
+                t: wt, n: wn,
+                p: Math.max(1, parseFloat(document.getElementById("f-cw-p").value) || 1),
+                note: document.getElementById("f-cw-note").value.trim()
+            });
+            resetCwForm();
+            calc();
+            return;
+        }
+
+        if (b.dataset.cw !== undefined) {
+            markEdit();
+            job().crew.splice(parseInt(b.dataset.cw, 10), 1);
+            calc();
+            return;
+        }
+
         if (b.id === "disc-cnt") {
             state.showCnt = !state.showCnt;
             if (state.showCnt) resetCntForm();
@@ -2177,12 +2519,13 @@
             return;
         }
 
-        if (b.dataset.md !== undefined) {
+        if (b.dataset.brk !== undefined) {
             markEdit();
-            var step = parseFloat(b.dataset.md);
+            var step = parseFloat(b.dataset.step);
             var jj = job();
-            jj.md = Math.max(0, Math.round((jj.md + step) * 4) / 4);
-            document.getElementById("f-md").value = jj.md.toFixed(2);
+            var key = b.dataset.brk || "md";
+            jj[key] = Math.max(0, Math.round((jj[key] + step) * 4) / 4);
+            document.getElementById("f-" + key).value = jj[key].toFixed(2);
             calc();
             return;
         }
@@ -2256,6 +2599,19 @@
         }
     }, { passive: true });
 
+    document.addEventListener("change", function (ev) {
+        if (ev.target.id !== "f-shift") return;
+        var v = ev.target.value;
+        if (!v) return;
+        var parts = v.split("|");
+        markEdit();
+        var jj = job();
+        jj.st = parts[0];
+        jj.en = parts[1];
+        renderCfg();
+        calc();
+    });
+
     document.addEventListener("input", function (ev) {
         var t = ev.target, c = cfg();
         if (!c) return;
@@ -2264,6 +2620,7 @@
            them is not yet a change worth stamping. */
         if (t.id === "f-ppm-v" || t.id === "f-ppm-t") return;
         if (t.id === "f-cnt-v" || t.id === "f-cnt-t") return;
+        if (t.id === "f-cw-t" || t.id === "f-cw-n" || t.id === "f-cw-p" || t.id === "f-cw-note") return;
 
         markEdit();
 
@@ -2299,8 +2656,8 @@
             return;
         }
 
-        if (t.id === "f-md") {
-            job().md = Math.max(0, parseFloat(t.value) || 0);
+        if (t.id === "f-md" || t.id === "f-mt" || t.id === "f-co" || t.id === "f-dn") {
+            job()[t.id.slice(2)] = Math.max(0, parseFloat(t.value) || 0);
             calc();
             return;
         }
@@ -2328,7 +2685,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-08-15T11:14:00Z";
+    var REV = "2026-10-16T06:52:00Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
