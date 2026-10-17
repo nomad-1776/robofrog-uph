@@ -441,6 +441,86 @@
             margin: 6px 0 0 0;
         }
 
+        .pp-block {
+            padding: 9px 0 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .pp-block:last-of-type {
+            border-bottom: none;
+        }
+
+        .pp-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto 30px;
+            gap: 6px;
+            align-items: baseline;
+        }
+
+        .pp-name {
+            font-size: 14px;
+            font-weight: 800;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pp-tot {
+            font-size: 12px;
+            font-weight: 800;
+            color: #2e7d32;
+            white-space: nowrap;
+        }
+
+        .pp-iv {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 30px;
+            gap: 6px;
+            align-items: center;
+            margin-top: 4px;
+            font-size: 12px;
+        }
+
+        .pp-add {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px;
+            gap: 5px;
+            align-items: end;
+            margin-top: 6px;
+        }
+
+        .pp-add input {
+            margin: 0;
+            padding: 5px;
+            font-size: 13px;
+        }
+
+        .form-container .pp-addbtn {
+            width: 100%;
+            margin-top: 0;
+            padding: 6px 0;
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1;
+            border-radius: 8px;
+        }
+
+        .pp-empty {
+            font-size: 12px;
+            line-height: 1.45;
+            color: #8a4d00;
+            background: #fff4e5;
+            border: 1px solid #e8a33d;
+            border-radius: 8px;
+            padding: 9px 10px;
+        }
+
+        .pp-none {
+            font-size: 11px;
+            color: #a35c00;
+            margin-top: 4px;
+        }
+
         .brk-item {
             padding: 9px 0 10px 0;
             border-bottom: 1px solid #eee;
@@ -1002,12 +1082,14 @@
     <h2>UPH Standard Calculator</h2>
     <div class="sub">Run time &times; UPH = shift goal, broken out by hour. Paid breaks count toward the standard; only unpaid time is removed.</div>
 
-    <div class="tabbar" role="tablist" aria-label="Mode">
+    <div class="tabbar tabbar3" role="tablist" aria-label="Mode">
         <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-mode="single">Single line</button>
         <button type="button" class="tab-btn" role="tab" aria-selected="false" data-mode="all">All lines</button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" data-mode="hw">Handwork</button>
     </div>
 
     <div id="picker" style="display:none"></div>
+    <div id="hwpicker" style="display:none"></div>
 
     <div id="cfg-home">
         <div class="cfgwrap" id="cfg-wrap">
@@ -1071,7 +1153,6 @@
             </div>
             <div class="eff" id="o-eff"></div>
 
-
             <label for="f-shift">Shift template</label>
             <select id="f-shift">
                 <option value="">Custom / leave as entered</option>
@@ -1090,6 +1171,22 @@
                     <input type="time" id="f-jen" step="900" />
                 </div>
             </div>
+
+            <button type="button" class="disc" id="disc-ppl" aria-expanded="false" aria-controls="ppl-body" style="display:none">
+                <span id="ppl-label">People</span><span class="caret" id="ppl-caret">&#9660;</span>
+            </button>
+            <div id="ppl-body" style="display:none">
+                <div class="panel">
+                    <div class="panel-subtitle" id="ppl-need"></div>
+                    <div id="ppl-list"></div>
+                    <div class="ppm-add" style="grid-template-columns:minmax(0,1fr) 46px;margin-top:10px;margin-bottom:0">
+                        <div class="tf"><span class="cap">Add person</span>
+                            <input type="text" id="f-pp-name" placeholder="name" /></div>
+                        <button type="button" class="add-btn" id="pp-add" aria-label="Add person">+</button>
+                    </div>
+                </div>
+            </div>
+
 
 
             <div class="output-container">
@@ -1245,11 +1342,15 @@
 
     var GROUPS = [
         { d: "Dry Spice", lines: ["DS2", "DS3", "DS4-Dessert", "DS4-Spice", "DS7", "DS8", "Pouch"] },
-        { d: "Handwork", lines: ["2-3", "2-4"] },
         { d: "Extracts", lines: ["Express", "811", "Liquid", "XL", "Cream"] }
     ];
 
     var ALL_LINES = GROUPS.reduce(function (a, g) { return a.concat(g.lines); }, []);
+
+    /* Hand fill rooms. These get their own mode because the standard is per
+       person and each person's time in the room is tracked separately. */
+    var HW_ROOMS = ["2-3", "2-4"];
+    function isHw() { return state.mode === "hw"; }
 
     function defaultStops() {
         return [
@@ -1268,7 +1369,7 @@
     function newJob(st, en) {
         return {
             id: "j" + (jid++) + "_" + Math.random().toString(36).slice(2, 6),
-            note: "", uph: 0, ca: 1, cp: 1, md: 0, mt: 0, co: 0, dn: 0, fin: 0, tgt: 0, ppm: [], cnt: [], crew: [],
+            note: "", uph: 0, ca: 1, cp: 1, md: 0, mt: 0, co: 0, dn: 0, fin: 0, tgt: 0, ppm: [], cnt: [], crew: [], ppl: [],
             st: st || "16:15", en: en || "02:45"
         };
     }
@@ -1318,6 +1419,8 @@
 
     var state = {
         mode: "single",
+        hwRoom: HW_ROOMS[0],
+        hw: {},
         dept: GROUPS[0].d,
         sel: ALL_LINES[0],
         selBy: {},
@@ -1327,6 +1430,7 @@
         showCnt: false,
         showCrew: false,
         showBrk: false,
+        showPpl: true,
         single: newCfg(),
         lines: {}
     };
@@ -1371,6 +1475,18 @@
         if (Array.isArray(j.ppm)) {
             o.ppm = j.ppm.filter(function (p) {
                 return p && typeof p.t === "string" && isFinite(p.v);
+            });
+        }
+        if (Array.isArray(j.ppl)) {
+            o.ppl = j.ppl.filter(function (x) {
+                return x && typeof x.name === "string";
+            }).map(function (x) {
+                return {
+                    name: x.name,
+                    iv: (Array.isArray(x.iv) ? x.iv : []).filter(function (v) {
+                        return v && typeof v.f === "string" && typeof v.t === "string";
+                    })
+                };
             });
         }
         if (Array.isArray(j.crew)) {
@@ -1419,8 +1535,12 @@
         try {
             var s = JSON.parse(localStorage.getItem(LS) || "null");
             if (!s || typeof s !== "object") return;
-            state.mode = s.mode === "all" ? "all" : "single";
+            state.mode = (s.mode === "all" || s.mode === "hw") ? s.mode : "single";
             if (s.dept && GROUPS.some(function (g) { return g.d === s.dept; })) state.dept = s.dept;
+            if (s.hwRoom && HW_ROOMS.indexOf(s.hwRoom) >= 0) state.hwRoom = s.hwRoom;
+            if (s.hw && typeof s.hw === "object") {
+                HW_ROOMS.forEach(function (r) { if (s.hw[r]) state.hw[r] = sane(s.hw[r]); });
+            }
             if (s.selBy && typeof s.selBy === "object") state.selBy = s.selBy;
             state.showHours = s.showHours === true;
             state.showPpm = s.showPpm === true;
@@ -1428,6 +1548,7 @@
             state.showCnt = s.showCnt === true;
             state.showCrew = s.showCrew === true;
             state.showBrk = s.showBrk === true;
+            state.showPpl = s.showPpl !== false;
             if (s.sel && ALL_LINES.indexOf(s.sel) >= 0) state.sel = s.sel;
             state.single = sane(s.single);
             if (s.lines && typeof s.lines === "object") {
@@ -1440,6 +1561,11 @@
 
     function cfg() {
         if (state.mode === "single") return state.single;
+        if (isHw()) {
+            var r = state.hwRoom;
+            if (!state.hw[r]) state.hw[r] = newCfg();
+            return state.hw[r];
+        }
         var l = state.sel;
         if (!l) return null;
         if (!state.lines[l]) state.lines[l] = newCfg();
@@ -1542,7 +1668,44 @@
 
     /* Crew on hand at a given offset. With no timeline it's the job's fraction;
        with one, whichever segment covers that minute. */
+    /* How many people a person's intervals put in the room at this offset.
+       Both ends are measured from the job start, so a shift crossing midnight
+       needs no special case; an interval that began earlier counts from 0. */
+    function ivRange(d, v) {
+        function off(t) { return ((tm(t) - d.s) % 1440 + 1440) % 1440; }
+        var a = off(v.f), b = off(v.t);
+        if (b === 0) b = d.len;
+        if (b < a) a = 0;
+        return { a: Math.min(a, d.len), b: Math.min(b, d.len) };
+    }
+
+    function presentAt(d, j, off) {
+        var n = 0;
+        j.ppl.forEach(function (pr) {
+            for (var i = 0; i < pr.iv.length; i++) {
+                var r = ivRange(d, pr.iv[i]);
+                if (off >= r.a && off < r.b) { n++; return; }
+            }
+        });
+        return n;
+    }
+
+    /* Productive minutes one person was in the room. */
+    function personMin(d, j, pr) {
+        var seen = {}, total = 0;
+        pr.iv.forEach(function (v) {
+            var r = ivRange(d, v);
+            for (var k = r.a; k < r.b; k++) {
+                if (!seen[k] && d.flag[k] === 1) { seen[k] = 1; total++; }
+            }
+        });
+        return total;
+    }
+
     function crewAt(d, j, off) {
+        /* In a hand fill room the weight is a head count, so weightedIn totals
+           person-minutes and the rate is read per person. */
+        if (isHw()) return presentAt(d, j, off);
         var base = Math.max(0, j.ca) / Math.max(1, j.cp);
         if (!j.crew.length) return base;
         var segs = crewSegs(d, j);
@@ -1637,8 +1800,9 @@
     var armed = null, armTimer = null;
 
     function resetLabel(id) {
-        if (id === "reset-all") return "Reset all lines";
-        return state.mode === "single" ? "Reset this job" : "Reset " + state.sel;
+        if (id === "reset-all") return isHw() ? "Reset both rooms" : "Reset all lines";
+        return state.mode === "single" ? "Reset this job"
+            : (isHw() ? "Reset Handwork " + state.hwRoom : "Reset " + state.sel);
     }
 
     /* Two taps to fire: the first arms the button, and it disarms itself after a
@@ -1682,12 +1846,17 @@
             b.setAttribute("aria-selected", on ? "true" : "false");
         });
         document.getElementById("picker").style.display = state.mode === "all" ? "" : "none";
+        document.getElementById("hwpicker").style.display = isHw() ? "" : "none";
         document.getElementById("apply-all").style.display = state.mode === "all" ? "" : "none";
+        document.querySelector('label[for="f-uph"]').textContent = isHw() ? "UPH / person" : "UPH";
+        document.getElementById("frac-box").parentNode.style.display = isHw() ? "none" : "";
 
         var wrap = document.getElementById("cfg-wrap");
         wrap.className = state.mode === "all" ? "cfgwrap nested" : "cfgwrap";
-        document.getElementById("cfg-name").textContent = state.mode === "all" ? state.sel : "";
-        document.getElementById("reset-all").style.display = state.mode === "all" ? "" : "none";
+        document.getElementById("cfg-name").textContent =
+            state.mode === "all" ? state.sel : (isHw() ? "Handwork " + state.hwRoom : "");
+        document.getElementById("reset-all").style.display =
+            (state.mode === "all" || isHw()) ? "" : "none";
         setArmed(null);
     }
 
@@ -1988,11 +2157,71 @@
         list.innerHTML = h;
     }
 
+    function renderHwPicker() {
+        var pk = document.getElementById("hwpicker");
+        if (!isHw()) { pk.innerHTML = ""; return; }
+        var h = '<div class="linebar" aria-label="Hand fill rooms">';
+        HW_ROOMS.forEach(function (r) {
+            var c = state.hw[r];
+            var cls = "line-btn";
+            if (state.hwRoom === r) cls += " active";
+            else if (c && isStale(c)) cls += " old";
+            else if (c && c.jobs.some(function (x) { return x.uph > 0; })) cls += " set";
+            h += '<button type="button" class="' + cls + '" data-hwroom="' + esc(r) +
+                '" aria-pressed="' + (state.hwRoom === r ? "true" : "false") + '">' +
+                ((c && isStale(c)) ? "\u26a0 " : "") + "Handwork " + esc(r) + "</button>";
+        });
+        pk.innerHTML = h + "</div>";
+    }
+
+    function renderPpl(c, j, d) {
+        var list = document.getElementById("ppl-list");
+        if (!j.ppl.length) {
+            list.innerHTML = '<div class="pp-empty"><strong>Add the people in this room.</strong><br>' +
+                "Type a name below and tap +, then log the stretches each one was in the room. " +
+                "Someone who leaves and comes back gets two entries.</div>";
+            return;
+        }
+
+        var rate = baseUph(j);
+        var h = "";
+        j.ppl.forEach(function (pr, pi) {
+            var mins = personMin(d, j, pr);
+            h += '<div class="pp-block"><div class="pp-head">' +
+                '<span class="pp-name">' + esc(pr.name || "Person " + (pi + 1)) + "</span>" +
+                '<span class="pp-tot">' + (mins / 60).toFixed(2) + " hr" +
+                (rate ? " \u00b7 " + num(mins / 60 * rate) : "") + "</span>" +
+                '<button type="button" class="stop-del" data-ppdel="' + pi +
+                '" aria-label="Remove person">&times;</button></div>';
+
+            if (!pr.iv.length) {
+                h += '<div class="pp-none">No times logged \u2014 earns nothing yet.</div>';
+            }
+
+            pr.iv.forEach(function (v, vi) {
+                var r = ivRange(d, v);
+                var m = prodIn(d, { a: 0, b: d.len }, r.a, r.b);
+                h += '<div class="pp-iv"><span>' + fmt(tm(v.f)) + "\u2013" + fmt(tm(v.t)) +
+                    ' <span style="opacity:.7">' + m + " run min</span></span>" +
+                    '<button type="button" class="stop-del" data-ivdel="' + pi + ":" + vi +
+                    '" aria-label="Remove interval">&times;</button></div>';
+            });
+
+            h += '<div class="pp-add">' +
+                '<div class="tf"><span class="cap">From</span><input type="time" data-ivf="' + pi + '" /></div>' +
+                '<div class="tf"><span class="cap">To</span><input type="time" data-ivt="' + pi + '" /></div>' +
+                '<button type="button" class="pp-addbtn" data-ivadd="' + pi +
+                '" aria-label="Add time for this person">+</button></div></div>';
+        });
+        list.innerHTML = h;
+    }
+
     function renderStamp() {
         var c = cfg();
         var el = document.getElementById("stamp");
         var sb = document.getElementById("stale");
-        var what = state.mode === "all" ? state.sel : "This job";
+        var what = state.mode === "all" ? state.sel
+            : (isHw() ? "Handwork " + state.hwRoom : "This job");
 
         if (!c || !c.at) {
             el.style.display = "";
@@ -2227,8 +2456,33 @@
             (state.showBrk ? "Hide" : "Show") + " time breakdown" +
             (tags.length ? " \u00b7 " + tags.join(" \u00b7 ") : " \u00b7 run " + (runCalc / 60).toFixed(2));
 
+        var hwOn = isHw();
+        document.getElementById("disc-ppl").style.display = hwOn ? "" : "none";
+        document.getElementById("disc-crew").style.display = hwOn ? "none" : "";
+        if (hwOn) {
+            var pb2 = document.getElementById("ppl-body");
+            pb2.style.display = state.showPpl ? "" : "none";
+            var dppl = document.getElementById("disc-ppl");
+            dppl.className = state.showPpl ? "disc" : "disc shut";
+            dppl.setAttribute("aria-expanded", state.showPpl ? "true" : "false");
+            document.getElementById("ppl-caret").innerHTML = state.showPpl ? "&#9650;" : "&#9660;";
+
+            var totMin = 0;
+            j.ppl.forEach(function (pr) { totMin += personMin(d, j, pr); });
+            document.getElementById("ppl-label").textContent =
+                (state.showPpl ? "Hide" : "Show") + " people \u00b7 " +
+                j.ppl.length + (j.ppl.length === 1 ? " person" : " people") +
+                " \u00b7 " + (totMin / 60).toFixed(2) + " hr total";
+            document.getElementById("ppl-need").innerHTML =
+                "The standard is <strong>per person</strong>, so each one earns the rate for the time " +
+                "they were in the room. Breaks and unpaid time still come out.";
+            renderPpl(c, j, d);
+        } else {
+            document.getElementById("ppl-body").style.display = "none";
+        }
+
         var wb = document.getElementById("crew-body");
-        wb.style.display = state.showCrew ? "" : "none";
+        wb.style.display = (!hwOn && state.showCrew) ? "" : "none";
         var dcw = document.getElementById("disc-crew");
         dcw.className = state.showCrew ? "disc" : "disc shut";
         dcw.setAttribute("aria-expanded", state.showCrew ? "true" : "false");
@@ -2291,6 +2545,7 @@
     function refresh() {
         renderTabs();
         renderPicker();
+        renderHwPicker();
         renderCfg();
         calc();
     }
@@ -2308,6 +2563,50 @@
                 state.sel = groupOf(state.dept).lines[0];
             }
             refresh();
+            return;
+        }
+
+        if (b.dataset.hwroom !== undefined) {
+            state.hwRoom = b.dataset.hwroom;
+            refresh();
+            return;
+        }
+
+        if (b.id === "pp-add") {
+            var nmEl = document.getElementById("f-pp-name");
+            var nm = nmEl.value.trim();
+            if (!nm) return;
+            markEdit();
+            job().ppl.push({ name: nm, iv: [] });
+            nmEl.value = "";
+            calc();
+            return;
+        }
+
+        if (b.dataset.ppdel !== undefined) {
+            markEdit();
+            job().ppl.splice(parseInt(b.dataset.ppdel, 10), 1);
+            calc();
+            return;
+        }
+
+        if (b.dataset.ivdel !== undefined) {
+            markEdit();
+            var pv = b.dataset.ivdel.split(":");
+            var pr0 = job().ppl[parseInt(pv[0], 10)];
+            if (pr0) pr0.iv.splice(parseInt(pv[1], 10), 1);
+            calc();
+            return;
+        }
+
+        if (b.dataset.ivadd !== undefined) {
+            var pi = parseInt(b.dataset.ivadd, 10);
+            var fEl = document.querySelector('[data-ivf="' + pi + '"]');
+            var tEl = document.querySelector('[data-ivt="' + pi + '"]');
+            if (!fEl || !tEl || !fEl.value || !tEl.value) return;
+            markEdit();
+            job().ppl[pi].iv.push({ f: fEl.value, t: tEl.value });
+            calc();
             return;
         }
 
@@ -2424,6 +2723,12 @@
 
         if (b.id === "disc-stops") {
             state.showStops = !state.showStops;
+            calc();
+            return;
+        }
+
+        if (b.id === "disc-ppl") {
+            state.showPpl = !state.showPpl;
             calc();
             return;
         }
@@ -2564,10 +2869,12 @@
             setArmed(null);
 
             if (b.id === "reset-all") {
-                state.lines = {};
-                state.selBy = {};
+                if (isHw()) { state.hw = {}; }
+                else { state.lines = {}; state.selBy = {}; }
             } else if (state.mode === "single") {
                 state.single = newCfg();
+            } else if (isHw()) {
+                delete state.hw[state.hwRoom];
             } else {
                 delete state.lines[state.sel];
             }
@@ -2581,6 +2888,7 @@
 
         if (b.id === "stale-clear") {
             if (state.mode === "all") delete state.lines[state.sel];
+            else if (isHw()) delete state.hw[state.hwRoom];
             else state.single = newCfg();
             renderTabs();
             renderPicker();
@@ -2621,6 +2929,8 @@
         if (t.id === "f-ppm-v" || t.id === "f-ppm-t") return;
         if (t.id === "f-cnt-v" || t.id === "f-cnt-t") return;
         if (t.id === "f-cw-t" || t.id === "f-cw-n" || t.id === "f-cw-p" || t.id === "f-cw-note") return;
+        if (t.id === "f-pp-name") return;
+        if (t.dataset.ivf !== undefined || t.dataset.ivt !== undefined) return;
 
         markEdit();
 
@@ -2685,7 +2995,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-10-16T06:52:00Z";
+    var REV = "2026-10-17T23:16:00Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
