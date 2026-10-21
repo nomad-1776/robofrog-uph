@@ -2082,6 +2082,19 @@
         return { a: Math.min(a, d.len), b: Math.min(b, d.len) };
     }
 
+    /* Every minute a person's timelines cover, before unpaid time comes out.
+       The gap between this and intervalMin is what they personally lost. */
+    function intervalMinRaw(d, pr) {
+        var seen = {}, total = 0;
+        pr.iv.forEach(function (v) {
+            var r = ivRange(d, v);
+            for (var k = r.a; k < r.b; k++) {
+                if (!seen[k]) { seen[k] = 1; total++; }
+            }
+        });
+        return total;
+    }
+
     /* Productive minutes a person's logged intervals cover. */
     function intervalMin(d, pr) {
         var seen = {}, total = 0;
@@ -3117,8 +3130,19 @@
             document.getElementById("lbl-len").textContent = "Hours worked";
             document.getElementById("o-len").textContent =
                 (hwNow / 60).toFixed(2) + " hr \u00b7 " + who;
+            /* Unpaid time only comes off the people who were actually in the
+               room for it, so report what was really taken, not the scheduled
+               length of the break. */
+            var lostTot = 0, lostWho = 0;
+            j.ppl.forEach(function (pr) {
+                var lost = intervalMinRaw(d, pr) - personMin(d, j, pr);
+                if (lost > 0) { lostTot += lost; lostWho++; }
+            });
             document.getElementById("lbl-unpaid").textContent = "Unpaid deducted";
-            document.getElementById("o-unpaid").textContent = unpaidIn + " min each";
+            document.getElementById("o-unpaid").textContent = lostTot > 0
+                ? lostTot + " min \u00b7 " + lostWho + " of " + j.ppl.length +
+                  (j.ppl.length === 1 ? " person" : " people")
+                : "none \u2014 nobody was in for it";
             document.getElementById("lbl-run").textContent =
                 hw.open ? "Projected hours" : "Total hours";
             document.getElementById("o-run").textContent =
@@ -3982,7 +4006,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-10-21T08:08:16Z";
+    var REV = "2026-10-21T08:14:36Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
