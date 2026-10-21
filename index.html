@@ -2923,13 +2923,15 @@
 
     function paceHtml(d, j, pr) {
         var rate = baseUph(j);
-        if (rate <= 0) return "";
+        if (rate <= 0 || !pr.iv.length) return "";
 
         var pj = projectedMin(d, pr);
-        if (!pj.open) return "";
-
         var dayT = pj.min / 60 * rate;
-        var out = "Day target <strong>" + num(dayT) + "</strong> by " + fmt(d.s + d.len);
+
+        /* Closed timelines give a settled figure; an open one is a projection to
+           the end of the job. Shown either way so every person reads the same. */
+        var out = "Day target <strong>" + num(dayT) + "</strong>" +
+            (pj.open ? " projected to " + fmt(d.s + d.len) : " \u00b7 all time logged");
 
         var pc = personPace(d, j, pr);
         if (pc) {
@@ -3944,7 +3946,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-10-21T06:11:27Z";
+    var REV = "2026-10-21T06:14:23Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
