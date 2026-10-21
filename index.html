@@ -806,9 +806,14 @@
 
         .pp-pace {
             font-size: 11px;
-            font-weight: 700;
-            color: #555;
-            margin: 2px 0 0 0;
+            font-weight: 400;
+            color: #444;
+            margin: 4px 0 0 0;
+            line-height: 1.45;
+        }
+
+        .pp-pace strong {
+            font-weight: 800;
         }
 
         .pp-pace .up,
@@ -2890,8 +2895,11 @@
         var hv = personHave(d, j, pr);
         var have = hv.v, src = hv.src;
 
+        var openNow = projectedMin(d, pr).open;
+        var tgtLab = openNow ? "Target now" : "Target";
+
         if (!have || std <= 0) {
-            return '<div><span class="lab">Target</span><span class="val">' +
+            return '<div><span class="lab">' + tgtLab + '</span><span class="val">' +
                 (std > 0 ? num(std) : "\u2014") + "</span></div>" +
                 '<div><span class="lab">Counted</span><span class="val">\u2014</span></div>' +
                 '<div><span class="lab">Not counted</span><span class="val">\u2014</span></div>';
@@ -2900,20 +2908,36 @@
         var diff = have - std;
         var pct = have / std * 100;
         var cls = diff >= 0 ? "up" : "down";
-        return '<div><span class="lab">Target</span><span class="val">' + num(std) + "</span></div>" +
+        return '<div><span class="lab">' + tgtLab + '</span><span class="val">' + num(std) + "</span></div>" +
             '<div><span class="lab">' + src + '</span><span class="val">' + num(have) + "</span></div>" +
             '<div class="' + cls + '"><span class="lab">' + (diff >= 0 ? "Ahead" : "Short") +
             '</span><span class="val">' + (diff >= 0 ? "+" : "\u2212") + num(Math.abs(diff)) +
             " \u00b7 " + pct.toFixed(0) + "%</span></div>";
     }
 
+    /* What this person is on the hook for by the end of the job: every closed
+       timeline plus any they are still in, run through to the shift end. */
+    function personDayTarget(d, j, pr) {
+        return projectedMin(d, pr).min / 60 * baseUph(j);
+    }
+
     function paceHtml(d, j, pr) {
+        var rate = baseUph(j);
+        if (rate <= 0) return "";
+
+        var pj = projectedMin(d, pr);
+        if (!pj.open) return "";
+
+        var dayT = pj.min / 60 * rate;
+        var out = "Day target <strong>" + num(dayT) + "</strong> by " + fmt(d.s + d.len);
+
         var pc = personPace(d, j, pr);
-        if (!pc) return "";
-        var pct = pc.target > 0 ? pc.finish / pc.target * 100 : 0;
-        return "At this pace, finishing <strong>" + num(pc.finish) + "</strong> of " +
-            num(pc.target) + ' \u00b7 <span class="' + (pct >= 100 ? "up" : "down") + '">' +
-            pct.toFixed(0) + "%</span>";
+        if (pc) {
+            var pct = pc.target > 0 ? pc.finish / pc.target * 100 : 0;
+            out += " \u00b7 at this pace <strong>" + num(pc.finish) + "</strong> " +
+                '<span class="' + (pct >= 100 ? "up" : "down") + '">' + pct.toFixed(0) + "%</span>";
+        }
+        return out;
     }
 
     /* Update the derived numbers without touching the inputs. */
@@ -3920,7 +3944,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-10-21T05:57:15Z";
+    var REV = "2026-10-21T06:11:27Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
