@@ -520,6 +520,11 @@
             line-height: 1.45;
         }
 
+        .pp-round {
+            color: #8a4d00;
+            font-weight: 800;
+        }
+
         .pp-ivr .up {
             color: #2e7d32;
             font-weight: 800;
@@ -2037,13 +2042,28 @@
     /* How many people a person's intervals put in the room at this offset.
        Both ends are measured from the job start, so a shift crossing midnight
        needs no special case; an interval that began earlier counts from 0. */
+    /* Hand fill is accounted in quarter hours: a timestamp that feeds a
+       calculation is read to the nearest quarter, so 5:23 PM counts as 5:30 PM.
+       What was typed is left alone; only the arithmetic rounds. */
+    function q15m(mins) {
+        return ((Math.round(mins / 15) * 15) % 1440 + 1440) % 1440;
+    }
+
+    function q15t(t) {
+        var m = q15m(tm(t));
+        return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+    }
+
+    /* Only hand fill rounds; the production lines read times as entered. */
+    function qt(t) { return isHw() ? q15t(t) : t; }
+
     /* While set, an unfinished timeline is read as running to the end of the
        job instead of stopping at the clock. That is the difference between
        "earned so far" and "the goal for the day". */
     var projectOpen = false;
 
     function ivRange(d, v) {
-        function off(t) { return ((tm(t) - d.s) % 1440 + 1440) % 1440; }
+        function off(t) { return ((tm(qt(t)) - d.s) % 1440 + 1440) % 1440; }
         var a = Math.min(off(v.f), d.len), b;
 
         /* No end time means they are still in the room, so the timeline runs
@@ -2164,11 +2184,12 @@
        the end-of-shift total is what feeds the sum. */
     function checkRows(d, j, pr) {
         var rows = pr.chk.slice().sort(function (a, b) {
-            return ((tm(a.t) - d.s) % 1440 + 1440) % 1440 - ((tm(b.t) - d.s) % 1440 + 1440) % 1440;
+            return ((tm(qt(a.t)) - d.s) % 1440 + 1440) % 1440 -
+                   ((tm(qt(b.t)) - d.s) % 1440 + 1440) % 1440;
         });
         var prevV = 0, prevOff = 0, out = [];
         rows.forEach(function (k) {
-            var off = Math.max(0, Math.min(d.len, ((tm(k.t) - d.s) % 1440 + 1440) % 1440));
+            var off = Math.max(0, Math.min(d.len, ((tm(qt(k.t)) - d.s) % 1440 + 1440) % 1440));
             var mins = personMinBetween(d, pr, prevOff, off);
             var stdTo = personMinBetween(d, pr, 0, off) / 60 * baseUph(j);
             out.push({
@@ -2242,6 +2263,7 @@
     function nowInfo(d) {
         var n = new Date();
         var mins = n.getHours() * 60 + n.getMinutes();
+        if (isHw()) mins = q15m(mins);
         var off = ((mins - d.s) % 1440 + 1440) % 1440;
         var label = fmt(mins);
         if (off < d.len) return { phase: "in", off: off, label: label };
@@ -2781,7 +2803,9 @@
                 var diff = k.v - k.std;
                 var cls = k.std > 0 ? (diff >= 0 ? "up" : "down") : "";
                 h += '<div class="pp-ck">' +
-                    "<span>" + fmt(tm(k.t)) + "</span>" +
+                    "<span>" + fmt(tm(qt(k.t))) +
+                    (qt(k.t) !== k.t ? ' <span class="pp-round">\u2190' + fmt(tm(k.t)) + "</span>" : "") +
+                    "</span>" +
                     "<span><strong>" + num(k.v) + "</strong></span>" +
                     '<span class="' + cls + '">' +
                     (k.std > 0 ? Math.round(k.pct) + "%" : "\u2014") + "</span>" +
@@ -2829,7 +2853,8 @@
 
     function ckCap() {
         var n = new Date();
-        return "At \u00b7 blank = now (" + fmt(n.getHours() * 60 + n.getMinutes()) + ")";
+        var m = n.getHours() * 60 + n.getMinutes();
+        return "At \u00b7 blank = now (" + fmt(isHw() ? q15m(m) : m) + ")";
     }
 
     /* The timeline sum and its one-tap fill. Always rendered, even when empty,
@@ -2844,7 +2869,18 @@
     /* What one timeline is worth: its run minutes, the goal those minutes earn,
        and once a count is in, the pace it was actually run at. */
     function ivRate(v, mins, rate) {
-        var out = [mins + " min"];
+        var out = [];
+
+        /* Say so when the arithmetic used a different time than was typed. */
+        if (isHw()) {
+            var rf = q15t(v.f), rt = v.t ? q15t(v.t) : "";
+            if (rf !== v.f || (v.t && rt !== v.t)) {
+                out.push('<span class="pp-round">counts ' + fmt(tm(rf)) +
+                    "\u2013" + (v.t ? fmt(tm(rt)) : "now") + "</span>");
+            }
+        }
+
+        out.push(mins + " min");
         var goal = mins / 60 * rate;
 
         if (rate > 0) out.push("goal " + num(goal));
@@ -3946,7 +3982,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-10-21T06:14:23Z";
+    var REV = "2026-10-21T08:08:16Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
