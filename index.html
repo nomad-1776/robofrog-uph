@@ -804,6 +804,31 @@
             color: #b3261e;
         }
 
+        .pp-pace {
+            font-size: 11px;
+            font-weight: 700;
+            color: #555;
+            margin: 2px 0 0 0;
+        }
+
+        .pp-pace .up,
+        .pp-fin .up {
+            color: #2e7d32;
+        }
+
+        .pp-pace .down,
+        .pp-fin .down {
+            color: #b3261e;
+        }
+
+        .pp-fin {
+            display: inline-block;
+            margin-top: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #333;
+        }
+
         .pp-proj {
             display: inline-block;
             margin-top: 5px;
@@ -1507,11 +1532,11 @@
 
 
             <div class="output-container">
-                <div class="output-row"><strong>Job length</strong><span class="value" id="o-len">&mdash;</span></div>
-                <div class="output-row"><strong>Unpaid time</strong><span class="value" id="o-unpaid">&mdash;</span></div>
+                <div class="output-row"><strong id="lbl-len">Job length</strong><span class="value" id="o-len">&mdash;</span></div>
+                <div class="output-row"><strong id="lbl-unpaid">Unpaid time</strong><span class="value" id="o-unpaid">&mdash;</span></div>
                 <div class="output-row" id="row-exp"><strong>Expected run time</strong><span class="value" id="o-exp">&mdash;</span></div>
                 <div class="output-row" id="row-md"><strong>Maintenance down</strong><span class="value" id="o-md">&mdash;</span></div>
-                <div class="output-row actual"><strong>Actual run time</strong><span class="value" id="o-run">&mdash;</span></div>
+                <div class="output-row actual"><strong id="lbl-run">Actual run time</strong><span class="value" id="o-run">&mdash;</span></div>
 
                 <div class="goal-box">
                     <div class="label" id="o-goallabel">Total shift goal</div>
@@ -2007,6 +2032,11 @@
     /* How many people a person's intervals put in the room at this offset.
        Both ends are measured from the job start, so a shift crossing midnight
        needs no special case; an interval that began earlier counts from 0. */
+    /* While set, an unfinished timeline is read as running to the end of the
+       job instead of stopping at the clock. That is the difference between
+       "earned so far" and "the goal for the day". */
+    var projectOpen = false;
+
     function ivRange(d, v) {
         function off(t) { return ((tm(t) - d.s) % 1440 + 1440) % 1440; }
         var a = Math.min(off(v.f), d.len), b;
@@ -2014,6 +2044,7 @@
         /* No end time means they are still in the room, so the timeline runs
            to the clock \u2014 or to the end of the job once it is over. */
         if (!v.t) {
+            if (projectOpen) return { a: a, b: d.len, open: true };
             var n = nowInfo(d);
             b = n.phase === "pre" ? a : (n.phase === "post" ? d.len : Math.min(n.off, d.len));
             if (b < a) b = a;
@@ -2073,12 +2104,18 @@
     function roomTotals(d, j) {
         var rate = baseUph(j);
         var o = { counted: 0, target: 0, proj: 0, open: false, end: d.s + d.len };
+        o.finish = 0;
+        o.anyPace = false;
         j.ppl.forEach(function (pr) {
             o.counted += pr.cnt || 0;
             o.target += personMin(d, j, pr) / 60 * rate;
             var pj = projectedMin(d, pr);
             o.proj += pj.min / 60 * rate;
             if (pj.open) o.open = true;
+
+            var pc = personPace(d, j, pr);
+            if (pc) { o.finish += pc.finish; o.anyPace = true; }
+            else { o.finish += personHave(d, j, pr).v; }
         });
         return o;
     }
@@ -2091,9 +2128,15 @@
                 " \u00b7 " + (t.target > 0 ? (t.counted / t.target * 100).toFixed(1) : "0.0") + "%";
         }
         if (t.open && t.proj > t.target) {
-            h += (h ? "<br>" : "") + '<span class="pp-proj">If everyone stays to ' +
-                fmt(t.end) + ", target becomes <strong>" + num(t.proj) + "</strong> \u00b7 " +
-                num(t.proj - t.target) + " more to earn</span>";
+            h += (h ? "<br>" : "") + '<span class="pp-proj">Day goal <strong>' +
+                num(t.proj) + "</strong> if everyone stays to " + fmt(t.end) +
+                " \u00b7 " + num(t.proj - t.target) + " still to earn</span>";
+        }
+        if (t.anyPace && t.proj > 0) {
+            var fp = t.finish / t.proj * 100;
+            h += (h ? "<br>" : "") + '<span class="pp-fin">At this pace the room finishes <strong>' +
+                num(t.finish) + "</strong> of " + num(t.proj) + ' \u00b7 <span class="' +
+                (fp >= 100 ? "up" : "down") + '">' + fp.toFixed(0) + "%</span></span>";
         }
         return h;
     }
@@ -2682,7 +2725,8 @@
             '<span class="pp-tot" data-pphrs="' + pi + '">' + (mins / 60).toFixed(2) + " hr</span>" +
             '<button type="button" class="stop-del" data-ppdel="' + pi +
             '" aria-label="Remove person">&times;</button></div>' +
-            '<div class="pp-stats" data-ppstats="' + pi + '">' + personStats(d, j, pr, std) + "</div>";
+            '<div class="pp-stats" data-ppstats="' + pi + '">' + personStats(d, j, pr, std) + "</div>" +
+            '<div class="pp-pace" data-pppace="' + pi + '">' + paceHtml(d, j, pr) + "</div>";
 
         h += '<div class="pp-sec">Timelines <span>time in the room</span></div>';
 
@@ -2814,20 +2858,37 @@
         return out.join(" \u00b7 ");
     }
 
+    /* Whatever count we have for a person, best source first. */
+    function personHave(d, j, pr) {
+        var ivSum = 0;
+        pr.iv.forEach(function (v) { ivSum += v.c || 0; });
+        if (pr.cnt > 0) return { v: pr.cnt, src: "Counted" };
+        if (ivSum > 0) return { v: ivSum, src: "Timelines" };
+        var ck = checkRows(d, j, pr);
+        if (ck.length) return { v: ck[ck.length - 1].v, src: "Check" };
+        return { v: 0, src: "Counted" };
+    }
+
+    /* Where a person lands at the end of the job if they keep the pace they
+       have shown so far. Only meaningful while they are still in the room. */
+    function personPace(d, j, pr) {
+        var rate = baseUph(j);
+        var pj = projectedMin(d, pr);
+        if (!pj.open || rate <= 0) return null;
+
+        var earnedStd = personMin(d, j, pr) / 60 * rate;
+        var projStd = pj.min / 60 * rate;
+        var have = personHave(d, j, pr).v;
+        if (!have || earnedStd <= 0 || projStd <= earnedStd) return null;
+
+        return { finish: have / earnedStd * projStd, target: projStd };
+    }
+
     /* Target, what they have counted, and how far off that leaves them. Mid
        shift the latest check stands in until a total is written at the end. */
     function personStats(d, j, pr, std) {
-        /* Whatever the floor has given us, best first: the total written at the
-           end, else the timeline counts added up, else the latest walk-through. */
-        var ck = checkRows(d, j, pr);
-        var ivSum = 0;
-        pr.iv.forEach(function (v) { ivSum += v.c || 0; });
-
-        var have, src;
-        if (pr.cnt > 0) { have = pr.cnt; src = "Counted"; }
-        else if (ivSum > 0) { have = ivSum; src = "Timelines"; }
-        else if (ck.length) { have = ck[ck.length - 1].v; src = "Check"; }
-        else { have = 0; src = "Counted"; }
+        var hv = personHave(d, j, pr);
+        var have = hv.v, src = hv.src;
 
         if (!have || std <= 0) {
             return '<div><span class="lab">Target</span><span class="val">' +
@@ -2846,6 +2907,15 @@
             " \u00b7 " + pct.toFixed(0) + "%</span></div>";
     }
 
+    function paceHtml(d, j, pr) {
+        var pc = personPace(d, j, pr);
+        if (!pc) return "";
+        var pct = pc.target > 0 ? pc.finish / pc.target * 100 : 0;
+        return "At this pace, finishing <strong>" + num(pc.finish) + "</strong> of " +
+            num(pc.target) + ' \u00b7 <span class="' + (pct >= 100 ? "up" : "down") + '">' +
+            pct.toFixed(0) + "%</span>";
+    }
+
     /* Update the derived numbers without touching the inputs. */
     function refreshPplTotals(c, j, d) {
         var rate = baseUph(j);
@@ -2853,6 +2923,8 @@
             var std = personMin(d, j, pr) / 60 * rate;
             var st2 = document.querySelector('[data-ppstats="' + pi + '"]');
             if (st2) st2.innerHTML = personStats(d, j, pr, std);
+            var pc2 = document.querySelector('[data-pppace="' + pi + '"]');
+            if (pc2) pc2.innerHTML = paceHtml(d, j, pr);
             var th = document.querySelector('[data-pphrs="' + pi + '"]');
             if (th) th.textContent = (personMin(d, j, pr) / 60).toFixed(2) + " hr";
             if (pr.id === j.psel) {
@@ -2936,7 +3008,12 @@
         var runAdj = Math.max(0, prod - mdMin);
 
         var mdW = mdWeighted(d, j);
+
+        /* The job goal is the whole day, so anyone still in the room counts
+           through to the end of the job. */
+        projectOpen = true;
         var wAll = Math.max(0, weightedIn(d, j) - mdW);
+        projectOpen = false;
         var total = wAll / 60 * baseUph(j);
 
         var upto = Math.max(w.a, Math.min(now.off, w.b));
@@ -2964,15 +3041,44 @@
               num(u) + " UPH (from " + num(baseUph(j)) + ")"
             : "";
 
-        document.getElementById("o-len").textContent = (winMin / 60).toFixed(2) + " hr (" + winMin + " min)";
-        document.getElementById("o-unpaid").textContent = unpaidIn + " min";
+        if (isHw()) {
+            /* A hand fill room is measured in labour hours, not in how long the
+               room was open \u2014 the window is the same for everybody. */
+            var hw = roomTotals(d, j);
+            var hwNow = 0, hwProj = 0;
+            j.ppl.forEach(function (pr) {
+                hwNow += personMin(d, j, pr);
+                hwProj += projectedMin(d, pr).min;
+            });
+            var who = j.ppl.length + (j.ppl.length === 1 ? " person" : " people");
+
+            document.getElementById("lbl-len").textContent = "Hours worked";
+            document.getElementById("o-len").textContent =
+                (hwNow / 60).toFixed(2) + " hr \u00b7 " + who;
+            document.getElementById("lbl-unpaid").textContent = "Unpaid deducted";
+            document.getElementById("o-unpaid").textContent = unpaidIn + " min each";
+            document.getElementById("lbl-run").textContent =
+                hw.open ? "Projected hours" : "Total hours";
+            document.getElementById("o-run").textContent =
+                (hwProj / 60).toFixed(2) + " hr" +
+                (hw.open ? " to " + fmt(d.s + d.len) : "");
+        } else {
+            document.getElementById("lbl-len").textContent = "Job length";
+            document.getElementById("o-len").textContent = (winMin / 60).toFixed(2) + " hr (" + winMin + " min)";
+            document.getElementById("lbl-unpaid").textContent = "Unpaid time";
+            document.getElementById("o-unpaid").textContent = unpaidIn + " min";
+            document.getElementById("lbl-run").textContent = "Actual run time";
+        }
         var ded = deductHrs(j);
         document.getElementById("o-md").textContent = ded > 0
             ? "\u2212" + ded.toFixed(2) + " hr (" + Math.round(mdMin) + " min)" +
               (j.md > 0 && j.mt > 0 ? "  MD " + j.md.toFixed(2) + " + M/T " + j.mt.toFixed(2) : "")
             : "none";
         document.getElementById("o-exp").textContent = (prod / 60).toFixed(2) + " hr (" + prod + " min)";
-        document.getElementById("o-run").textContent = (runAdj / 60).toFixed(2) + " hr (" + runAdj + " min)";
+        if (!isHw()) {
+            document.getElementById("o-run").textContent =
+                (runAdj / 60).toFixed(2) + " hr (" + runAdj + " min)";
+        }
         document.querySelector(".output-row.actual").className =
             "output-row actual" + (ded > 0 ? " md" : "");
 
@@ -3001,6 +3107,8 @@
                 (u / 60).toFixed(1) + " PPM";
         }
 
+        /* Same for the hourly plan \u2014 it is what the day should look like. */
+        projectOpen = true;
         var h = '<thead><tr><th class="l">Hr</th><th class="l">Window</th><th>Run</th><th>Goal</th><th>Cum.</th></tr></thead><tbody>';
         var cum = 0, shown = 0;
         d.rows.forEach(function (r) {
@@ -3031,6 +3139,7 @@
         }
 
         h += "</tbody>";
+        projectOpen = false;
         document.getElementById("tbl").innerHTML = h;
 
         var tblEl = document.getElementById("tbl");
@@ -3811,7 +3920,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-10-21T03:06:37Z";
+    var REV = "2026-10-21T05:57:15Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
