@@ -474,11 +474,31 @@
 
         .pp-iv {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 76px 30px;
+            grid-template-columns: minmax(0, 1fr) 30px;
+            gap: 5px 6px;
+            align-items: center;
+            margin-top: 7px;
+            font-size: 12px;
+        }
+
+        .pp-ivtimes {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 10px minmax(0, 1fr);
+            gap: 3px;
+            align-items: center;
+        }
+
+        .pp-dash {
+            text-align: center;
+            opacity: 0.6;
+        }
+
+        .pp-ivrow2 {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 76px minmax(0, 1fr);
             gap: 6px;
             align-items: center;
-            margin-top: 5px;
-            font-size: 12px;
         }
 
         .pp-ivt {
@@ -524,25 +544,11 @@
             font-weight: 800;
         }
 
-        .pp-ivend {
-            grid-column: 1 / -1;
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) 78px;
-            gap: 6px;
-            margin-top: 4px;
-        }
-
-        .form-container .pp-ivend input {
-            margin: 0;
-            padding: 5px;
-            font-size: 13px;
-            text-align: left;
-        }
-
         .form-container .pp-endbtn {
+            grid-column: 1 / -1;
             width: 100%;
-            margin: 0;
-            padding: 5px 0;
+            margin: 3px 0 0 0;
+            padding: 6px 0;
             font-size: 11px;
             font-weight: 800;
             background: #fff;
@@ -616,10 +622,36 @@
         .pp-ck {
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto 26px;
-            gap: 6px;
+            gap: 4px 6px;
             align-items: center;
             font-size: 12px;
-            padding: 2px 0;
+            padding: 4px 0;
+            border-bottom: 1px solid #e4e7ea;
+        }
+
+        .pp-ck:last-child {
+            border-bottom: none;
+        }
+
+        .pp-ckpct {
+            font-size: 13px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .pp-ckpct.up {
+            color: #2e7d32;
+        }
+
+        .pp-ckpct.down {
+            color: #b3261e;
+        }
+
+        .pp-cksub {
+            grid-column: 1 / -1;
+            font-size: 10px;
+            opacity: 0.75;
+            line-height: 1.4;
         }
 
         .pp-ckr {
@@ -1993,11 +2025,14 @@
         rows.forEach(function (k) {
             var off = Math.max(0, Math.min(d.len, ((tm(k.t) - d.s) % 1440 + 1440) % 1440));
             var mins = personMinBetween(d, pr, prevOff, off);
+            var stdTo = personMinBetween(d, pr, 0, off) / 60 * baseUph(j);
             out.push({
                 t: k.t, v: k.v,
                 gained: k.v - prevV,
                 mins: mins,
                 rate: mins > 0 ? (k.v - prevV) / mins * 60 : 0,
+                std: stdTo,
+                pct: stdTo > 0 ? k.v / stdTo * 100 : 0,
                 idx: pr.chk.indexOf(k)
             });
             prevV = k.v;
@@ -2486,8 +2521,7 @@
             j.uph, j.st, j.en, j.md, j.mt,
             c.stops.map(function (x) { return [x.t, x.m, x.paid]; }),
             j.psel, j.ppl.map(function (pr) {
-                return [pr.id, pr.name, pr.chk,
-                    pr.iv.map(function (v) { return [v.f, v.t]; })];
+                return [pr.id, pr.name, pr.chk.length, pr.iv.length];
             })
         ]);
     }
@@ -2560,21 +2594,25 @@
         pr.iv.forEach(function (v, vi) {
             var r = ivRange(d, v);
             var m = prodIn(d, { a: 0, b: d.len }, r.a, r.b);
+            var key = pi + ":" + vi;
             h += '<div class="pp-iv' + (r.open ? " open" : "") + '">' +
-                '<span class="pp-ivt">' + fmt(tm(v.f)) + "\u2013" +
-                (r.open ? '<span class="pp-live">still here</span>' : fmt(tm(v.t))) + "</span>" +
-                '<input type="number" min="0" step="1" inputmode="numeric" data-ivc="' + pi + ":" + vi +
+                '<div class="pp-ivtimes">' +
+                '<input type="time" data-ivedf="' + key + '" value="' + v.f +
+                '" aria-label="Start time" />' +
+                '<span class="pp-dash">&ndash;</span>' +
+                '<input type="time" data-ivedt="' + key + '" value="' + (v.t || "") +
+                '" aria-label="End time" />' +
+                "</div>" +
+                '<button type="button" class="stop-del" data-ivdel="' + key +
+                '" aria-label="Remove timeline">&times;</button>' +
+                '<div class="pp-ivrow2">' +
+                '<input type="number" min="0" step="1" inputmode="numeric" data-ivc="' + key +
                 '" value="' + (v.c || "") + '" placeholder="count" aria-label="Count for this timeline" />' +
-                '<button type="button" class="stop-del" data-ivdel="' + pi + ":" + vi +
-                '" aria-label="Remove interval">&times;</button>' +
-                '<span class="pp-ivr" data-ivr="' + pi + ":" + vi + '">' +
-                ivRate(v, m, rate) + "</span>" +
-                (r.open
-                    ? '<div class="pp-ivend"><input type="time" data-ivend-t="' + pi + ":" + vi +
-                      '" aria-label="End time" />' +
-                      '<button type="button" class="pp-endbtn" data-ivend="' + pi + ":" + vi +
-                      '">End now</button></div>'
-                    : "") +
+                '<span class="pp-ivr" data-ivr="' + key + '">' + ivRate(v, m, rate) + "</span>" +
+                "</div>" +
+                '<button type="button" class="pp-endbtn" data-ivend="' + key +
+                '" style="display:' + (r.open ? "" : "none") +
+                '">Still here \u2014 end now</button>' +
                 "</div>";
         });
 
@@ -2588,14 +2626,22 @@
         if (ck.length) {
             h += '<div class="pp-cklist">';
             ck.forEach(function (k) {
-                var ok = rate > 0 && k.rate >= rate;
+                var behind = k.std > 0 && k.v < k.std;
                 h += '<div class="pp-ck"><span>' + fmt(tm(k.t)) +
                     ' <strong>' + num(k.v) + "</strong></span>" +
-                    '<span class="pp-ckr ' + (ok ? "up" : "down") + '">' +
-                    (k.mins > 0 ? "+" + num(k.gained) + " \u00b7 " + Math.round(k.rate) + "/hr" : "\u2014") +
-                    "</span>" +
+                    '<span class="pp-ckpct ' + (k.std > 0 ? (behind ? "down" : "up") : "") + '">' +
+                    (k.std > 0 ? Math.round(k.pct) + "%" : "\u2014") + "</span>" +
                     '<button type="button" class="stop-del" data-ckdel="' + pi + ":" + k.idx +
-                    '" aria-label="Remove check">&times;</button></div>';
+                    '" aria-label="Remove check">&times;</button>' +
+                    '<span class="pp-cksub">' +
+                    (k.std > 0
+                        ? "of " + num(k.std) + " earned \u00b7 " +
+                          (k.v - k.std >= 0 ? "+" : "\u2212") + num(Math.abs(k.v - k.std))
+                        : "no time logged yet") +
+                    (k.mins > 0
+                        ? " \u00b7 +" + num(k.gained) + " since last at " + Math.round(k.rate) + "/hr"
+                        : "") +
+                    "</span></div>";
             });
             h += "</div>";
         }
@@ -2717,10 +2763,16 @@
                 var sum2 = 0, any2 = false;
                 pr.iv.forEach(function (v, vi) {
                     if (v.c > 0) { sum2 += v.c; any2 = true; }
+                    var rg = ivRange(d, v);
                     var rr = document.querySelector('[data-ivr="' + pi + ":" + vi + '"]');
-                    if (rr) {
-                        var rg = ivRange(d, v);
-                        rr.innerHTML = ivRate(v, prodIn(d, { a: 0, b: d.len }, rg.a, rg.b), rate);
+                    if (rr) rr.innerHTML = ivRate(v, prodIn(d, { a: 0, b: d.len }, rg.a, rg.b), rate);
+
+                    /* Clearing or setting an end time flips the row between open
+                       and closed without rebuilding, so the field keeps focus. */
+                    var eb = document.querySelector('[data-ivend="' + pi + ":" + vi + '"]');
+                    if (eb) {
+                        eb.style.display = rg.open ? "" : "none";
+                        if (eb.parentNode) eb.parentNode.className = "pp-iv" + (rg.open ? " open" : "");
                     }
                 });
                 var sl = document.querySelector(".pp-ivsum");
@@ -3230,20 +3282,18 @@
             var epr = job().ppl[parseInt(ie[0], 10)];
             var ivv = epr && epr.iv[parseInt(ie[1], 10)];
             if (ivv) {
-                var tin = document.querySelector('[data-ivend-t="' + b.dataset.ivend + '"]');
-                var endT;
-                if (tin && tin.value) {
-                    endT = tin.value;
-                } else {
-                    var n2 = new Date();
-                    endT = String(n2.getHours()).padStart(2, "0") + ":" +
+                var n2 = new Date();
+                var endT = String(n2.getHours()).padStart(2, "0") + ":" +
                            String(n2.getMinutes()).padStart(2, "0");
-                }
                 /* A timeline cannot end before it began \u2014 which "End now"
                    would do on one that has not started yet. */
                 var dj = build(c, job());
                 function o(t) { return ((tm(t) - dj.s) % 1440 + 1440) % 1440; }
                 ivv.t = o(endT) < o(ivv.f) ? ivv.f : endT;
+
+                /* Nothing rebuilds on a time change, so put it in the field too. */
+                var fld = document.querySelector('[data-ivedt="' + b.dataset.ivend + '"]');
+                if (fld) fld.value = ivv.t;
             }
             calc();
             return;
@@ -3572,6 +3622,22 @@
         if (t.dataset.ivf !== undefined || t.dataset.ivt !== undefined) return;
         if (t.dataset.ckv !== undefined || t.dataset.ckt !== undefined) return;
 
+        if (t.dataset.ivedf !== undefined || t.dataset.ivedt !== undefined) {
+            markEdit();
+            var ek = (t.dataset.ivedf !== undefined ? t.dataset.ivedf : t.dataset.ivedt).split(":");
+            var epr2 = job().ppl[parseInt(ek[0], 10)];
+            var evv = epr2 && epr2.iv[parseInt(ek[1], 10)];
+            if (evv) {
+                if (t.dataset.ivedf !== undefined) {
+                    if (t.value) evv.f = t.value;
+                } else {
+                    evv.t = t.value;
+                }
+            }
+            calc();
+            return;
+        }
+
         if (t.dataset.ivc !== undefined) {
             markEdit();
             var ic = t.dataset.ivc.split(":");
@@ -3654,7 +3720,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-10-21T02:16:00Z";
+    var REV = "2026-10-21T02:02:37Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
