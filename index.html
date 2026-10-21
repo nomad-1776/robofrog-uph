@@ -612,6 +612,25 @@
             margin-bottom: 10px;
         }
 
+        .pp-sec {
+            margin: 12px 0 2px 0;
+            padding-top: 8px;
+            border-top: 1px solid #e4e7ea;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #2e7d32;
+        }
+
+        .pp-sec span {
+            text-transform: none;
+            letter-spacing: 0;
+            font-weight: 400;
+            color: #555;
+            opacity: 0.85;
+        }
+
         .pp-cklist {
             margin-top: 6px;
             padding: 5px 7px;
@@ -621,12 +640,38 @@
 
         .pp-ck {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) auto 26px;
-            gap: 4px 6px;
+            grid-template-columns: minmax(0, 1fr) 50px 42px 50px 24px;
+            gap: 2px 4px;
             align-items: center;
             font-size: 12px;
-            padding: 4px 0;
+            padding: 5px 0;
             border-bottom: 1px solid #e4e7ea;
+        }
+
+        .pp-ck > span:nth-child(2),
+        .pp-ck > span:nth-child(3),
+        .pp-ck > span:nth-child(4) {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .pp-ck .up {
+            color: #2e7d32;
+            font-weight: 800;
+        }
+
+        .pp-ck .down {
+            color: #b3261e;
+            font-weight: 800;
+        }
+
+        .pp-ckhead {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            opacity: 0.6;
+            padding: 0 0 3px 0;
+            border-bottom: 1px solid #ccd2d8;
         }
 
         .pp-ck:last-child {
@@ -757,6 +802,14 @@
 
         .pp-eff .down {
             color: #b3261e;
+        }
+
+        .pp-proj {
+            display: inline-block;
+            margin-top: 5px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #8a4d00;
         }
 
         .pp-roll {
@@ -2001,6 +2054,50 @@
         return intervalMin(d, pr);
     }
 
+    /* The same, but anyone still in the room is assumed to stay to the end of
+       the job \u2014 what the target becomes if nobody else moves. */
+    function projectedMin(d, pr) {
+        var seen = {}, total = 0, open = false;
+        pr.iv.forEach(function (v) {
+            var r = ivRange(d, v);
+            var hi = r.open ? d.len : r.b;
+            if (r.open) open = true;
+            for (var k = r.a; k < hi; k++) {
+                if (!seen[k] && d.flag[k] === 1) { seen[k] = 1; total++; }
+            }
+        });
+        return { min: total, open: open };
+    }
+
+    /* Room totals as they stand, and as projected to the end of the job. */
+    function roomTotals(d, j) {
+        var rate = baseUph(j);
+        var o = { counted: 0, target: 0, proj: 0, open: false, end: d.s + d.len };
+        j.ppl.forEach(function (pr) {
+            o.counted += pr.cnt || 0;
+            o.target += personMin(d, j, pr) / 60 * rate;
+            var pj = projectedMin(d, pr);
+            o.proj += pj.min / 60 * rate;
+            if (pj.open) o.open = true;
+        });
+        return o;
+    }
+
+    function rollHtml(d, j) {
+        var t = roomTotals(d, j);
+        var h = "";
+        if (t.counted > 0) {
+            h += "Counted <strong>" + num(t.counted) + "</strong> of " + num(t.target) +
+                " \u00b7 " + (t.target > 0 ? (t.counted / t.target * 100).toFixed(1) : "0.0") + "%";
+        }
+        if (t.open && t.proj > t.target) {
+            h += (h ? "<br>" : "") + '<span class="pp-proj">If everyone stays to ' +
+                fmt(t.end) + ", target becomes <strong>" + num(t.proj) + "</strong> \u00b7 " +
+                num(t.proj - t.target) + " more to earn</span>";
+        }
+        return h;
+    }
+
     /* The same, limited to a span of the job \u2014 used to rate one check
        against the last, so time the person was away never counts. */
     function personMinBetween(d, pr, from, to) {
@@ -2587,6 +2684,8 @@
             '" aria-label="Remove person">&times;</button></div>' +
             '<div class="pp-stats" data-ppstats="' + pi + '">' + personStats(d, j, pr, std) + "</div>";
 
+        h += '<div class="pp-sec">Timelines <span>time in the room</span></div>';
+
         if (!pr.iv.length) {
             h += '<div class="pp-none">No times logged \u2014 earns nothing yet.</div>';
         }
@@ -2622,25 +2721,30 @@
             '<button type="button" class="pp-addbtn" data-ivadd="' + pi +
             '" aria-label="Add time for this person">+</button></div>';
 
+        h += '<div class="pp-sec">Progress checks <span>count as of a time</span></div>';
+
         var ck = checkRows(d, j, pr);
         if (ck.length) {
-            h += '<div class="pp-cklist">';
+            h += '<div class="pp-cklist">' +
+                '<div class="pp-ck pp-ckhead"><span>Time</span><span>Count</span>' +
+                "<span>Eff</span><span>+/\u2212</span><span></span></div>";
             ck.forEach(function (k) {
-                var behind = k.std > 0 && k.v < k.std;
-                h += '<div class="pp-ck"><span>' + fmt(tm(k.t)) +
-                    ' <strong>' + num(k.v) + "</strong></span>" +
-                    '<span class="pp-ckpct ' + (k.std > 0 ? (behind ? "down" : "up") : "") + '">' +
+                var diff = k.v - k.std;
+                var cls = k.std > 0 ? (diff >= 0 ? "up" : "down") : "";
+                h += '<div class="pp-ck">' +
+                    "<span>" + fmt(tm(k.t)) + "</span>" +
+                    "<span><strong>" + num(k.v) + "</strong></span>" +
+                    '<span class="' + cls + '">' +
                     (k.std > 0 ? Math.round(k.pct) + "%" : "\u2014") + "</span>" +
+                    '<span class="' + cls + '">' +
+                    (k.std > 0 ? (diff >= 0 ? "+" : "\u2212") + num(Math.abs(diff)) : "\u2014") +
+                    "</span>" +
                     '<button type="button" class="stop-del" data-ckdel="' + pi + ":" + k.idx +
                     '" aria-label="Remove check">&times;</button>' +
                     '<span class="pp-cksub">' +
-                    (k.std > 0
-                        ? "of " + num(k.std) + " earned \u00b7 " +
-                          (k.v - k.std >= 0 ? "+" : "\u2212") + num(Math.abs(k.v - k.std))
-                        : "no time logged yet") +
-                    (k.mins > 0
-                        ? " \u00b7 +" + num(k.gained) + " since last at " + Math.round(k.rate) + "/hr"
-                        : "") +
+                    (k.std > 0 ? "target " + num(k.std) + " by then" : "no time logged yet") +
+                    (k.mins > 0 ? " \u00b7 +" + num(k.gained) + " since last at " +
+                        Math.round(k.rate) + "/hr" : "") +
                     "</span></div>";
             });
             h += "</div>";
@@ -2658,6 +2762,8 @@
         pr.iv.forEach(function (v) { if (v.c > 0) { ivSum += v.c; ivAny = true; } });
         h += '<div class="pp-ivsum">' + ivSumHtml(pr, pi, ivSum, ivAny) + "</div>";
 
+        h += '<div class="pp-sec">End of shift <span>what feeds the room total</span></div>';
+
         h += '<div class="pp-cnt"><label>Total</label>' +
             '<input type="number" min="0" step="1" inputmode="numeric" data-ppcnt="' + pi +
             '" value="' + (pr.cnt || "") + '" placeholder="units" aria-label="Total for ' +
@@ -2666,15 +2772,7 @@
 
         h += "</div>";
 
-        var tc = 0, ts = 0;
-        j.ppl.forEach(function (x) {
-            tc += x.cnt || 0;
-            ts += personMin(d, j, x) / 60 * rate;
-        });
-        h += '<div class="pp-roll">' + (tc > 0
-            ? "Counted <strong>" + num(tc) + "</strong> of " + num(ts) + " \u00b7 " +
-              (ts > 0 ? (tc / ts * 100).toFixed(1) : "0.0") + "%"
-            : "") + "</div>";
+        h += '<div class="pp-roll">' + rollHtml(d, j) + "</div>";
 
         list.innerHTML = h;
 
@@ -2750,11 +2848,9 @@
 
     /* Update the derived numbers without touching the inputs. */
     function refreshPplTotals(c, j, d) {
-        var rate = baseUph(j), tc = 0, ts = 0;
+        var rate = baseUph(j);
         j.ppl.forEach(function (pr, pi) {
             var std = personMin(d, j, pr) / 60 * rate;
-            tc += pr.cnt || 0;
-            ts += std;
             var st2 = document.querySelector('[data-ppstats="' + pi + '"]');
             if (st2) st2.innerHTML = personStats(d, j, pr, std);
             var th = document.querySelector('[data-pphrs="' + pi + '"]');
@@ -2788,12 +2884,7 @@
         if (cap) cap.textContent = ckCap();
 
         var roll = document.querySelector(".pp-roll");
-        if (roll) {
-            roll.innerHTML = tc > 0
-                ? "Counted <strong>" + num(tc) + "</strong> of " + num(ts) + " \u00b7 " +
-                  (ts > 0 ? (tc / ts * 100).toFixed(1) : "0.0") + "%"
-                : "";
-        }
+        if (roll) roll.innerHTML = rollHtml(d, j);
     }
 
     function renderStamp() {
@@ -3720,7 +3811,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-10-21T02:02:37Z";
+    var REV = "2026-10-21T03:06:37Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
