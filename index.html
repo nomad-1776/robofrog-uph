@@ -474,11 +474,98 @@
 
         .pp-iv {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 30px;
+            grid-template-columns: minmax(0, 1fr) 76px 30px;
             gap: 6px;
             align-items: center;
-            margin-top: 4px;
+            margin-top: 5px;
             font-size: 12px;
+        }
+
+        .pp-ivt {
+            font-weight: 700;
+        }
+
+        .form-container .pp-iv input {
+            margin: 0;
+            padding: 5px;
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .pp-ivr {
+            grid-column: 1 / -1;
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: -1px;
+            line-height: 1.45;
+        }
+
+        .pp-ivr .up {
+            color: #2e7d32;
+            font-weight: 800;
+            opacity: 1;
+        }
+
+        .pp-ivr .down {
+            color: #b3261e;
+            font-weight: 800;
+            opacity: 1;
+        }
+
+        .pp-iv.open {
+            background: #fff4e5;
+            border: 1px solid #e8a33d;
+            border-radius: 8px;
+            padding: 5px 7px;
+        }
+
+        .pp-live {
+            color: #8a4d00;
+            font-weight: 800;
+        }
+
+        .pp-ivend {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 78px;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .form-container .pp-ivend input {
+            margin: 0;
+            padding: 5px;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .form-container .pp-endbtn {
+            width: 100%;
+            margin: 0;
+            padding: 5px 0;
+            font-size: 11px;
+            font-weight: 800;
+            background: #fff;
+            color: #8a4d00;
+            border: 1px solid #e8a33d;
+            border-radius: 8px;
+        }
+
+        .pp-ivsum {
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .form-container .pp-use {
+            width: auto;
+            margin: 0 0 0 4px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 800;
+            background: #fff;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+            border-radius: 999px;
         }
 
         .pp-add {
@@ -515,6 +602,10 @@
             padding: 9px 10px;
         }
 
+        .pp-tabs {
+            margin-bottom: 10px;
+        }
+
         .pp-cklist {
             margin-top: 6px;
             padding: 5px 7px;
@@ -545,9 +636,62 @@
             color: #b3261e;
         }
 
+        .pp-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+            margin: 7px 0 2px 0;
+        }
+
+        .pp-stats > div {
+            background: #f4f6f8;
+            border-radius: 8px;
+            padding: 6px 7px;
+            min-width: 0;
+        }
+
+        .pp-stats .lab {
+            display: block;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            opacity: 0.65;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pp-stats .val {
+            display: block;
+            font-size: 15px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .pp-stats .up {
+            background: #eef7ee;
+        }
+
+        .pp-stats .up .val,
+        .pp-stats .up .lab {
+            color: #2e7d32;
+            opacity: 1;
+        }
+
+        .pp-stats .down {
+            background: #fdecea;
+        }
+
+        .pp-stats .down .val,
+        .pp-stats .down .lab {
+            color: #b3261e;
+            opacity: 1;
+        }
+
         .pp-cnt {
             display: grid;
-            grid-template-columns: 44px 92px minmax(0, 1fr);
+            grid-template-columns: 44px minmax(0, 1fr);
             gap: 6px;
             align-items: center;
             margin-top: 7px;
@@ -829,6 +973,18 @@
             border: 1px solid #d7d7d7;
             border-radius: 10px;
             background: #fff;
+        }
+
+        .fin-sum {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 6px 0 2px 0;
+        }
+
+        .fin-note {
+            font-size: 11px;
+            opacity: 0.8;
+            line-height: 1.4;
         }
 
         .eff-big {
@@ -1268,8 +1424,8 @@
             <div class="output-container">
                 <div class="output-row"><strong>Job length</strong><span class="value" id="o-len">&mdash;</span></div>
                 <div class="output-row"><strong>Unpaid time</strong><span class="value" id="o-unpaid">&mdash;</span></div>
-                <div class="output-row"><strong>Expected run time</strong><span class="value" id="o-exp">&mdash;</span></div>
-                <div class="output-row"><strong>Maintenance down</strong><span class="value" id="o-md">&mdash;</span></div>
+                <div class="output-row" id="row-exp"><strong>Expected run time</strong><span class="value" id="o-exp">&mdash;</span></div>
+                <div class="output-row" id="row-md"><strong>Maintenance down</strong><span class="value" id="o-md">&mdash;</span></div>
                 <div class="output-row actual"><strong>Actual run time</strong><span class="value" id="o-run">&mdash;</span></div>
 
                 <div class="goal-box">
@@ -1279,8 +1435,15 @@
                 </div>
 
                 <div class="eff-box">
-                    <label for="f-final" style="margin-top:0">Final count</label>
-                    <input type="number" id="f-final" min="0" step="1" inputmode="numeric" placeholder="units produced" />
+                    <div id="fin-wrap">
+                        <label for="f-final" style="margin-top:0">Final count</label>
+                        <input type="number" id="f-final" min="0" step="1" inputmode="numeric" placeholder="units produced" />
+                    </div>
+                    <div id="fin-auto" style="display:none">
+                        <label style="margin-top:0">Final count</label>
+                        <div class="fin-sum" id="o-finsum">&mdash;</div>
+                        <div class="fin-note">Added up from each person's total &mdash; nothing to type here.</div>
+                    </div>
                     <div class="eff-big" id="o-effpct"></div>
                     <div class="eff-note" id="o-effnote"></div>
                     <div class="eff-note" id="o-effpace"></div>
@@ -1445,7 +1608,7 @@
     function newJob(st, en) {
         return {
             id: "j" + (jid++) + "_" + Math.random().toString(36).slice(2, 6),
-            note: "", uph: 0, ca: 1, cp: 1, md: 0, mt: 0, co: 0, dn: 0, fin: 0, tgt: 0, ppm: [], cnt: [], crew: [], ppl: [],
+            note: "", uph: 0, ca: 1, cp: 1, md: 0, mt: 0, co: 0, dn: 0, fin: 0, tgt: 0, ppm: [], cnt: [], crew: [], ppl: [], psel: null,
             st: st || "16:15", en: en || "02:45"
         };
     }
@@ -1473,7 +1636,7 @@
         return baseUph(j) * (a / p);
     }
 
-    /* Units earned over a stretch: weighted minutes at the job's base rate. */
+    /* Units earned over a span: weighted minutes at the job's base rate. */
     function unitsIn(d, j, from, to) {
         return weightedIn(d, j, from, to) / 60 * baseUph(j);
     }
@@ -1481,6 +1644,10 @@
     /* Hours that come off the standard: maintenance down and meeting/training.
        Changeover and ordinary downtime stay in, so they have to be made up. */
     function deductHrs(j) {
+        /* Hand fill tracks every absence on the person's own timeline, so the
+           job-wide deductions do not apply there \u2014 and cannot be left behind
+           by a value typed before the room was switched over. */
+        if (isHw()) return 0;
         return Math.max(0, j.md) + Math.max(0, j.mt);
     }
 
@@ -1553,18 +1720,22 @@
                 return p && typeof p.t === "string" && isFinite(p.v);
             });
         }
+        o.psel = j.psel || null;
         if (Array.isArray(j.ppl)) {
             o.ppl = j.ppl.filter(function (x) {
                 return x && typeof x.name === "string";
             }).map(function (x) {
                 return {
+                    id: x.id || ("p" + (jid++) + "_" + Math.random().toString(36).slice(2, 6)),
                     name: x.name,
                     cnt: Math.max(0, parseFloat(x.cnt) || 0),
                     chk: (Array.isArray(x.chk) ? x.chk : []).filter(function (k) {
                         return k && typeof k.t === "string" && isFinite(k.v);
                     }),
                     iv: (Array.isArray(x.iv) ? x.iv : []).filter(function (v) {
-                        return v && typeof v.f === "string" && typeof v.t === "string";
+                        return v && typeof v.f === "string";
+                    }).map(function (v) {
+                        return { f: v.f, t: v.t || "", c: Math.max(0, parseFloat(v.c) || 0) };
                     })
                 };
             });
@@ -1753,7 +1924,18 @@
        needs no special case; an interval that began earlier counts from 0. */
     function ivRange(d, v) {
         function off(t) { return ((tm(t) - d.s) % 1440 + 1440) % 1440; }
-        var a = off(v.f), b = off(v.t);
+        var a = Math.min(off(v.f), d.len), b;
+
+        /* No end time means they are still in the room, so the timeline runs
+           to the clock \u2014 or to the end of the job once it is over. */
+        if (!v.t) {
+            var n = nowInfo(d);
+            b = n.phase === "pre" ? a : (n.phase === "post" ? d.len : Math.min(n.off, d.len));
+            if (b < a) b = a;
+            return { a: a, b: b, open: true };
+        }
+
+        b = off(v.t);
         if (b === 0) b = d.len;
         if (b < a) a = 0;
         return { a: Math.min(a, d.len), b: Math.min(b, d.len) };
@@ -1787,7 +1969,7 @@
         return intervalMin(d, pr);
     }
 
-    /* The same, limited to a stretch of the job \u2014 used to rate one check
+    /* The same, limited to a span of the job \u2014 used to rate one check
        against the last, so time the person was away never counts. */
     function personMinBetween(d, pr, from, to) {
         var seen = {}, total = 0;
@@ -2064,6 +2246,7 @@
     function renderCfg() {
         var c = cfg(), j = job();
         if (!c || !j) return;
+        lastPplSig = null;
         document.getElementById("f-job").value = j.note;
         document.getElementById("f-uph").value = j.uph || "";
         document.getElementById("f-crew-a").value = j.ca;
@@ -2296,92 +2479,151 @@
         pk.innerHTML = h + "</div>";
     }
 
+    /* Everything that changes what the list actually says. Derived numbers are
+       deliberately left out so they can refresh in place. */
+    function pplSig(c, j) {
+        return JSON.stringify([
+            j.uph, j.st, j.en, j.md, j.mt,
+            c.stops.map(function (x) { return [x.t, x.m, x.paid]; }),
+            j.psel, j.ppl.map(function (pr) {
+                return [pr.id, pr.name, pr.chk,
+                    pr.iv.map(function (v) { return [v.f, v.t]; })];
+            })
+        ]);
+    }
+
+    var lastPplSig = null;
+
     function renderPpl(c, j, d) {
         var list = document.getElementById("ppl-list");
 
-        /* Leave the list alone while a field inside it has focus, or rebuilding
-           would take the cursor out from under them mid-entry. */
+        /* Only rebuild when the list's content has actually changed. The periodic
+           refresh and any typing elsewhere leave the markup alone, so a mobile
+           time picker can stay open as long as it likes without the input being
+           pulled out from under it. */
+        var sig = pplSig(c, j);
+        var fresh = list.innerHTML && (list.querySelector(".pp-block") || !j.ppl.length);
+        if (sig === lastPplSig && fresh) {
+            refreshPplTotals(c, j, d);
+            return;
+        }
+
+        /* A field in the list still holding focus means the user is mid-entry;
+           hold off until they are done. */
         var ae = document.activeElement;
         if (ae && ae.tagName === "INPUT" && list.contains(ae) && j.ppl.length) {
             refreshPplTotals(c, j, d);
             return;
         }
 
+        lastPplSig = sig;
+
         if (!j.ppl.length) {
             list.innerHTML = '<div class="pp-empty"><strong>Add the people in this room.</strong><br>' +
-                "Type a name below and tap +, then log the stretches each one was in the room. " +
-                "Someone who leaves and comes back gets two entries.</div>";
+                "Type a name below and tap +. Each person gets their own tab with their " +
+                "times, progress checks and total.</div>";
             return;
         }
 
+        /* One tab per person, so a room of five does not become a wall of
+           fields. Only the selected person's detail is rendered. */
         var rate = baseUph(j);
-        var h = "";
-        j.ppl.forEach(function (pr, pi) {
-            var mins = personMin(d, j, pr);
-            var std = mins / 60 * rate;
+        var sel = 0;
+        j.ppl.forEach(function (pr, i) { if (pr.id === j.psel) sel = i; });
+        if (!j.ppl[sel]) sel = 0;
+        j.psel = j.ppl[sel].id;
 
-            h += '<div class="pp-block"><div class="pp-head">' +
-                '<span class="pp-name">' + esc(pr.name || "Person " + (pi + 1)) + "</span>" +
-                '<span class="pp-tot" data-pphrs="' + pi + '">' + (mins / 60).toFixed(2) + " hr" +
-                (rate ? " \u00b7 " + num(std) : "") + "</span>" +
-                '<button type="button" class="stop-del" data-ppdel="' + pi +
-                '" aria-label="Remove person">&times;</button></div>';
+        var h = '<div class="linebar pp-tabs">';
+        j.ppl.forEach(function (pr, i) {
+            h += '<button type="button" class="line-btn' +
+                (i === sel ? " active" : (pr.cnt > 0 ? " set" : "")) +
+                '" data-ppsel="' + esc(pr.id) + '">' + esc(pr.name || "Person " + (i + 1)) +
+                (pr.cnt > 0 ? " \u2713" : "") + "</button>";
+        });
+        h += "</div>";
 
-            if (!pr.iv.length) {
-                h += '<div class="pp-none">No times logged \u2014 earns nothing yet.</div>';
-            }
+        var pi = sel, pr = j.ppl[sel];
+        var mins = personMin(d, j, pr);
+        var std = mins / 60 * rate;
 
-            pr.iv.forEach(function (v, vi) {
-                var r = ivRange(d, v);
-                var m = prodIn(d, { a: 0, b: d.len }, r.a, r.b);
-                h += '<div class="pp-iv"><span>' + fmt(tm(v.f)) + "\u2013" + fmt(tm(v.t)) +
-                    ' <span style="opacity:.7">' + m + " run min</span></span>" +
-                    '<button type="button" class="stop-del" data-ivdel="' + pi + ":" + vi +
-                    '" aria-label="Remove interval">&times;</button></div>';
-            });
+        h += '<div class="pp-block"><div class="pp-head">' +
+            '<span class="pp-name">' + esc(pr.name || "Person " + (pi + 1)) + "</span>" +
+            '<span class="pp-tot" data-pphrs="' + pi + '">' + (mins / 60).toFixed(2) + " hr</span>" +
+            '<button type="button" class="stop-del" data-ppdel="' + pi +
+            '" aria-label="Remove person">&times;</button></div>' +
+            '<div class="pp-stats" data-ppstats="' + pi + '">' + personStats(d, j, pr, std) + "</div>";
 
-            h += '<div class="pp-add">' +
-                '<div class="tf"><span class="cap">From</span><input type="time" data-ivf="' + pi + '" /></div>' +
-                '<div class="tf"><span class="cap">To</span><input type="time" data-ivt="' + pi + '" /></div>' +
-                '<button type="button" class="pp-addbtn" data-ivadd="' + pi +
-                '" aria-label="Add time for this person">+</button></div>';
+        if (!pr.iv.length) {
+            h += '<div class="pp-none">No times logged \u2014 earns nothing yet.</div>';
+        }
 
-            var ck = checkRows(d, j, pr);
-            if (ck.length) {
-                h += '<div class="pp-cklist">';
-                ck.forEach(function (k) {
-                    var ok = rate > 0 && k.rate >= rate;
-                    h += '<div class="pp-ck"><span>' + fmt(tm(k.t)) +
-                        ' <strong>' + num(k.v) + "</strong></span>" +
-                        '<span class="pp-ckr ' + (ok ? "up" : "down") + '">' +
-                        (k.mins > 0 ? "+" + num(k.gained) + " \u00b7 " + Math.round(k.rate) + "/hr" : "\u2014") +
-                        "</span>" +
-                        '<button type="button" class="stop-del" data-ckdel="' + pi + ":" + k.idx +
-                        '" aria-label="Remove check">&times;</button></div>';
-                });
-                h += "</div>";
-            }
-
-            h += '<div class="pp-add pp-ckadd">' +
-                '<div class="tf"><span class="cap">Check</span>' +
-                '<input type="number" min="0" step="1" inputmode="numeric" data-ckv="' + pi + '" placeholder="count so far" /></div>' +
-                '<div class="tf"><span class="cap">At</span><input type="time" data-ckt="' + pi + '" /></div>' +
-                '<button type="button" class="pp-addbtn" data-ckadd="' + pi +
-                '" aria-label="Log a progress check">+</button></div>';
-
-            h += '<div class="pp-cnt"><label>Total</label>' +
-                '<input type="number" min="0" step="1" inputmode="numeric" data-ppcnt="' + pi +
-                '" value="' + (pr.cnt || "") + '" placeholder="units" aria-label="Count for ' +
-                esc(pr.name) + '" />' +
-                '<span class="pp-eff" data-ppeff="' + pi + '">' + personEff(pr, std) + "</span></div>";
-
-            h += "</div>";
+        pr.iv.forEach(function (v, vi) {
+            var r = ivRange(d, v);
+            var m = prodIn(d, { a: 0, b: d.len }, r.a, r.b);
+            h += '<div class="pp-iv' + (r.open ? " open" : "") + '">' +
+                '<span class="pp-ivt">' + fmt(tm(v.f)) + "\u2013" +
+                (r.open ? '<span class="pp-live">still here</span>' : fmt(tm(v.t))) + "</span>" +
+                '<input type="number" min="0" step="1" inputmode="numeric" data-ivc="' + pi + ":" + vi +
+                '" value="' + (v.c || "") + '" placeholder="count" aria-label="Count for this timeline" />' +
+                '<button type="button" class="stop-del" data-ivdel="' + pi + ":" + vi +
+                '" aria-label="Remove interval">&times;</button>' +
+                '<span class="pp-ivr" data-ivr="' + pi + ":" + vi + '">' +
+                ivRate(v, m, rate) + "</span>" +
+                (r.open
+                    ? '<div class="pp-ivend"><input type="time" data-ivend-t="' + pi + ":" + vi +
+                      '" aria-label="End time" />' +
+                      '<button type="button" class="pp-endbtn" data-ivend="' + pi + ":" + vi +
+                      '">End now</button></div>'
+                    : "") +
+                "</div>";
         });
 
+        h += '<div class="pp-add">' +
+            '<div class="tf"><span class="cap">From</span><input type="time" data-ivf="' + pi + '" /></div>' +
+            '<div class="tf"><span class="cap">To</span><input type="time" data-ivt="' + pi + '" /></div>' +
+            '<button type="button" class="pp-addbtn" data-ivadd="' + pi +
+            '" aria-label="Add time for this person">+</button></div>';
+
+        var ck = checkRows(d, j, pr);
+        if (ck.length) {
+            h += '<div class="pp-cklist">';
+            ck.forEach(function (k) {
+                var ok = rate > 0 && k.rate >= rate;
+                h += '<div class="pp-ck"><span>' + fmt(tm(k.t)) +
+                    ' <strong>' + num(k.v) + "</strong></span>" +
+                    '<span class="pp-ckr ' + (ok ? "up" : "down") + '">' +
+                    (k.mins > 0 ? "+" + num(k.gained) + " \u00b7 " + Math.round(k.rate) + "/hr" : "\u2014") +
+                    "</span>" +
+                    '<button type="button" class="stop-del" data-ckdel="' + pi + ":" + k.idx +
+                    '" aria-label="Remove check">&times;</button></div>';
+            });
+            h += "</div>";
+        }
+
+        h += '<div class="pp-add pp-ckadd">' +
+            '<div class="tf"><span class="cap">Count so far</span>' +
+            '<input type="number" min="0" step="1" inputmode="numeric" data-ckv="' + pi + '" placeholder="count" /></div>' +
+            '<div class="tf"><span class="cap" id="ck-cap">' + ckCap() + "</span>" +
+            '<input type="time" data-ckt="' + pi + '" /></div>' +
+            '<button type="button" class="pp-addbtn" data-ckadd="' + pi +
+            '" aria-label="Log a progress check">+</button></div>';
+
+        var ivSum = 0, ivAny = false;
+        pr.iv.forEach(function (v) { if (v.c > 0) { ivSum += v.c; ivAny = true; } });
+        h += '<div class="pp-ivsum">' + ivSumHtml(pr, pi, ivSum, ivAny) + "</div>";
+
+        h += '<div class="pp-cnt"><label>Total</label>' +
+            '<input type="number" min="0" step="1" inputmode="numeric" data-ppcnt="' + pi +
+            '" value="' + (pr.cnt || "") + '" placeholder="units" aria-label="Total for ' +
+            esc(pr.name) + '" />' +
+            "</div>";
+
+        h += "</div>";
+
         var tc = 0, ts = 0;
-        j.ppl.forEach(function (pr) {
-            tc += pr.cnt || 0;
-            ts += personMin(d, j, pr) / 60 * rate;
+        j.ppl.forEach(function (x) {
+            tc += x.cnt || 0;
+            ts += personMin(d, j, x) / 60 * rate;
         });
         h += '<div class="pp-roll">' + (tc > 0
             ? "Counted <strong>" + num(tc) + "</strong> of " + num(ts) + " \u00b7 " +
@@ -2390,21 +2632,74 @@
 
         list.innerHTML = h;
 
-        var nowHm = (function () {
-            var n = new Date();
-            return String(n.getHours()).padStart(2, "0") + ":" + String(n.getMinutes()).padStart(2, "0");
-        })();
-        j.ppl.forEach(function (pr, pi) {
-            var el = document.querySelector('[data-ckt="' + pi + '"]');
-            if (el && !el.value) el.value = nowHm;
-        });
     }
 
-    /* One person's count against their own standard. */
-    function personEff(pr, std) {
-        if (!pr.cnt || std <= 0) return "";
-        var pct = pr.cnt / std * 100;
-        return '<span class="' + (pct >= 100 ? "up" : "down") + '">' + pct.toFixed(0) + "%</span>";
+    function ckCap() {
+        var n = new Date();
+        return "At \u00b7 blank = now (" + fmt(n.getHours() * 60 + n.getMinutes()) + ")";
+    }
+
+    /* The timeline sum and its one-tap fill. Always rendered, even when empty,
+       so it can be refreshed in place while a count is being typed. */
+    function ivSumHtml(pr, pi, sum, any) {
+        if (!any) return "";
+        return "Timelines add to <strong>" + num(sum) + "</strong>" +
+            (pr.cnt === sum ? " \u2014 matches the total below"
+                : ' <button type="button" class="pp-use" data-ivuse="' + pi + '">use as total</button>');
+    }
+
+    /* What one timeline is worth: its run minutes, the goal those minutes earn,
+       and once a count is in, the pace it was actually run at. */
+    function ivRate(v, mins, rate) {
+        var out = [mins + " min"];
+        var goal = mins / 60 * rate;
+
+        if (rate > 0) out.push("goal " + num(goal));
+
+        if (v.c > 0 && mins > 0) {
+            out.push(num(v.c) + " at " + (v.c / mins).toFixed(2) + " ppm");
+            if (rate > 0) {
+                var diff = v.c - goal;
+                out.push('<span class="' + (diff >= 0 ? "up" : "down") + '">' +
+                    (diff >= 0 ? "+" : "\u2212") + num(Math.abs(diff)) + "</span>");
+            }
+        } else if (rate > 0) {
+            out.push("needs " + (rate / 60).toFixed(2) + " ppm");
+        }
+
+        return out.join(" \u00b7 ");
+    }
+
+    /* Target, what they have counted, and how far off that leaves them. Mid
+       shift the latest check stands in until a total is written at the end. */
+    function personStats(d, j, pr, std) {
+        /* Whatever the floor has given us, best first: the total written at the
+           end, else the timeline counts added up, else the latest walk-through. */
+        var ck = checkRows(d, j, pr);
+        var ivSum = 0;
+        pr.iv.forEach(function (v) { ivSum += v.c || 0; });
+
+        var have, src;
+        if (pr.cnt > 0) { have = pr.cnt; src = "Counted"; }
+        else if (ivSum > 0) { have = ivSum; src = "Timelines"; }
+        else if (ck.length) { have = ck[ck.length - 1].v; src = "Check"; }
+        else { have = 0; src = "Counted"; }
+
+        if (!have || std <= 0) {
+            return '<div><span class="lab">Target</span><span class="val">' +
+                (std > 0 ? num(std) : "\u2014") + "</span></div>" +
+                '<div><span class="lab">Counted</span><span class="val">\u2014</span></div>' +
+                '<div><span class="lab">Not counted</span><span class="val">\u2014</span></div>';
+        }
+
+        var diff = have - std;
+        var pct = have / std * 100;
+        var cls = diff >= 0 ? "up" : "down";
+        return '<div><span class="lab">Target</span><span class="val">' + num(std) + "</span></div>" +
+            '<div><span class="lab">' + src + '</span><span class="val">' + num(have) + "</span></div>" +
+            '<div class="' + cls + '"><span class="lab">' + (diff >= 0 ? "Ahead" : "Short") +
+            '</span><span class="val">' + (diff >= 0 ? "+" : "\u2212") + num(Math.abs(diff)) +
+            " \u00b7 " + pct.toFixed(0) + "%</span></div>";
     }
 
     /* Update the derived numbers without touching the inputs. */
@@ -2414,9 +2709,32 @@
             var std = personMin(d, j, pr) / 60 * rate;
             tc += pr.cnt || 0;
             ts += std;
-            var e = document.querySelector('[data-ppeff="' + pi + '"]');
-            if (e) e.innerHTML = personEff(pr, std);
+            var st2 = document.querySelector('[data-ppstats="' + pi + '"]');
+            if (st2) st2.innerHTML = personStats(d, j, pr, std);
+            var th = document.querySelector('[data-pphrs="' + pi + '"]');
+            if (th) th.textContent = (personMin(d, j, pr) / 60).toFixed(2) + " hr";
+            if (pr.id === j.psel) {
+                var sum2 = 0, any2 = false;
+                pr.iv.forEach(function (v, vi) {
+                    if (v.c > 0) { sum2 += v.c; any2 = true; }
+                    var rr = document.querySelector('[data-ivr="' + pi + ":" + vi + '"]');
+                    if (rr) {
+                        var rg = ivRange(d, v);
+                        rr.innerHTML = ivRate(v, prodIn(d, { a: 0, b: d.len }, rg.a, rg.b), rate);
+                    }
+                });
+                var sl = document.querySelector(".pp-ivsum");
+                if (sl) sl.innerHTML = ivSumHtml(pr, pi, sum2, any2);
+            }
+            var tab = document.querySelector('[data-ppsel="' + pr.id + '"]');
+            if (tab && pr.id !== j.psel) {
+                tab.className = "line-btn" + (pr.cnt > 0 ? " set" : "");
+                tab.textContent = (pr.name || "Person " + (pi + 1)) + (pr.cnt > 0 ? " \u2713" : "");
+            }
         });
+        var cap = document.getElementById("ck-cap");
+        if (cap) cap.textContent = ckCap();
+
         var roll = document.querySelector(".pp-roll");
         if (roll) {
             roll.innerHTML = tc > 0
@@ -2607,6 +2925,17 @@
         var pplCnt = 0;
         if (isHw()) j.ppl.forEach(function (pr) { pplCnt += pr.cnt || 0; });
 
+        document.getElementById("fin-wrap").style.display = isHw() ? "none" : "";
+        document.getElementById("fin-auto").style.display = isHw() ? "" : "none";
+        if (isHw()) {
+            document.getElementById("o-finsum").textContent = pplCnt > 0 ? num(pplCnt) : "\u2014";
+            document.getElementById("fin-auto").querySelector(".fin-note").textContent = pplCnt > 0
+                ? "Added up from " + j.ppl.length + (j.ppl.length === 1 ? " person" : " people") +
+                  " \u2014 nothing to type here."
+                : "Fill in each person's total above and it lands here.";
+        }
+
+
         var useFin = j.fin > 0 || pplCnt > 0;
         var finVal = j.fin > 0 ? j.fin : pplCnt;
         var val = useFin ? finVal : (latest ? latest.v : 0);
@@ -2655,8 +2984,11 @@
               ", down " + j.dn.toFixed(2) + ", MD " + j.md.toFixed(2) + ", M/T " + j.mt.toFixed(2);
 
         var bb = document.getElementById("brk-body");
-        bb.style.display = state.showBrk ? "" : "none";
+        bb.style.display = (!isHw() && state.showBrk) ? "" : "none";
         var dbrk = document.getElementById("disc-brk");
+        dbrk.style.display = isHw() ? "none" : "";
+        document.getElementById("row-exp").style.display = isHw() ? "none" : "";
+        document.getElementById("row-md").style.display = isHw() ? "none" : "";
         dbrk.className = state.showBrk ? "disc" : "disc shut";
         dbrk.setAttribute("aria-expanded", state.showBrk ? "true" : "false");
         document.getElementById("brk-caret").innerHTML = state.showBrk ? "&#9650;" : "&#9660;";
@@ -2710,9 +3042,12 @@
             "2/3 means two of the three the rate assumes. Use 0 on top for a meeting or training.";
         renderCrew(c, j, d);
 
+        /* The job-wide count log is redundant in a hand fill room: the per-person
+           checks already cover walking through and reading counters. */
         var cb = document.getElementById("cnt-body");
-        cb.style.display = state.showCnt ? "" : "none";
+        cb.style.display = (!isHw() && state.showCnt) ? "" : "none";
         var dcnt = document.getElementById("disc-cnt");
+        dcnt.style.display = isHw() ? "none" : "";
         dcnt.className = state.showCnt ? "disc" : "disc shut";
         dcnt.setAttribute("aria-expanded", state.showCnt ? "true" : "false");
         document.getElementById("cnt-caret").innerHTML = state.showCnt ? "&#9650;" : "&#9660;";
@@ -2735,8 +3070,9 @@
             (d.unpaid ? " \u00b7 " + d.unpaid + " min unpaid" : " \u00b7 none unpaid");
 
         var pb = document.getElementById("ppm-body");
-        pb.style.display = state.showPpm ? "" : "none";
+        pb.style.display = (!isHw() && state.showPpm) ? "" : "none";
         var dppm = document.getElementById("disc-ppm");
+        dppm.style.display = isHw() ? "none" : "";
         dppm.className = state.showPpm ? "disc" : "disc shut";
         dppm.setAttribute("aria-expanded", state.showPpm ? "true" : "false");
         document.getElementById("ppm-caret").innerHTML = state.showPpm ? "&#9650;" : "&#9660;";
@@ -2786,12 +3122,37 @@
             return;
         }
 
+        if (b.dataset.ivuse !== undefined) {
+            markEdit();
+            var up = job().ppl[parseInt(b.dataset.ivuse, 10)];
+            if (up) {
+                var sum = 0;
+                up.iv.forEach(function (v) { sum += v.c || 0; });
+                up.cnt = sum;
+                var box = document.querySelector('[data-ppcnt="' + b.dataset.ivuse + '"]');
+                if (box) box.value = sum || "";
+            }
+            calc();
+            return;
+        }
+
+        if (b.dataset.ppsel !== undefined) {
+            job().psel = b.dataset.ppsel;
+            calc();
+            return;
+        }
+
         if (b.id === "pp-add") {
             var nmEl = document.getElementById("f-pp-name");
             var nm = nmEl.value.trim();
             if (!nm) return;
             markEdit();
-            job().ppl.push({ name: nm, cnt: 0, chk: [], iv: [] });
+            var np = {
+                id: "p" + (jid++) + "_" + Math.random().toString(36).slice(2, 6),
+                name: nm, cnt: 0, chk: [], iv: []
+            };
+            job().ppl.push(np);
+            job().psel = np.id;
             nmEl.value = "";
             calc();
             return;
@@ -2799,7 +3160,10 @@
 
         if (b.dataset.ppdel !== undefined) {
             markEdit();
-            job().ppl.splice(parseInt(b.dataset.ppdel, 10), 1);
+            var jp = job();
+            var di = parseInt(b.dataset.ppdel, 10);
+            jp.ppl.splice(di, 1);
+            jp.psel = jp.ppl.length ? jp.ppl[Math.min(di, jp.ppl.length - 1)].id : null;
             calc();
             return;
         }
@@ -2819,10 +3183,17 @@
             var ctEl = document.querySelector('[data-ckt="' + ci + '"]');
             if (!cvEl || !ctEl) return;
             var cv = parseFloat(cvEl.value);
-            if (!isFinite(cv) || cv < 0 || !ctEl.value) return;
+            if (!isFinite(cv) || cv < 0) return;
             markEdit();
-            job().ppl[ci].chk.push({ t: ctEl.value, v: cv });
+            var ct = ctEl.value;
+            if (!ct) {
+                var nn = new Date();
+                ct = String(nn.getHours()).padStart(2, "0") + ":" +
+                     String(nn.getMinutes()).padStart(2, "0");
+            }
+            job().ppl[ci].chk.push({ t: ct, v: cv });
             cvEl.value = "";
+            ctEl.value = "";
             calc();
             return;
         }
@@ -2840,9 +3211,40 @@
             var pi = parseInt(b.dataset.ivadd, 10);
             var fEl = document.querySelector('[data-ivf="' + pi + '"]');
             var tEl = document.querySelector('[data-ivt="' + pi + '"]');
-            if (!fEl || !tEl || !fEl.value || !tEl.value) return;
+            if (!fEl || !fEl.value) return;
             markEdit();
-            job().ppl[pi].iv.push({ f: fEl.value, t: tEl.value });
+            var ivs = job().ppl[pi].iv;
+            /* Nobody can be in two places, so starting a new timeline closes
+               any timeline still left open. */
+            ivs.forEach(function (v) { if (!v.t) v.t = fEl.value; });
+            ivs.push({ f: fEl.value, t: tEl ? tEl.value : "", c: 0 });
+            if (fEl) fEl.value = "";
+            if (tEl) tEl.value = "";
+            calc();
+            return;
+        }
+
+        if (b.dataset.ivend !== undefined) {
+            markEdit();
+            var ie = b.dataset.ivend.split(":");
+            var epr = job().ppl[parseInt(ie[0], 10)];
+            var ivv = epr && epr.iv[parseInt(ie[1], 10)];
+            if (ivv) {
+                var tin = document.querySelector('[data-ivend-t="' + b.dataset.ivend + '"]');
+                var endT;
+                if (tin && tin.value) {
+                    endT = tin.value;
+                } else {
+                    var n2 = new Date();
+                    endT = String(n2.getHours()).padStart(2, "0") + ":" +
+                           String(n2.getMinutes()).padStart(2, "0");
+                }
+                /* A timeline cannot end before it began \u2014 which "End now"
+                   would do on one that has not started yet. */
+                var dj = build(c, job());
+                function o(t) { return ((tm(t) - dj.s) % 1440 + 1440) % 1440; }
+                ivv.t = o(endT) < o(ivv.f) ? ivv.f : endT;
+            }
             calc();
             return;
         }
@@ -3170,6 +3572,17 @@
         if (t.dataset.ivf !== undefined || t.dataset.ivt !== undefined) return;
         if (t.dataset.ckv !== undefined || t.dataset.ckt !== undefined) return;
 
+        if (t.dataset.ivc !== undefined) {
+            markEdit();
+            var ic = t.dataset.ivc.split(":");
+            var ipr = job().ppl[parseInt(ic[0], 10)];
+            if (ipr && ipr.iv[parseInt(ic[1], 10)]) {
+                ipr.iv[parseInt(ic[1], 10)].c = Math.max(0, parseFloat(t.value) || 0);
+            }
+            calc();
+            return;
+        }
+
         if (t.dataset.ppcnt !== undefined) {
             markEdit();
             var pr = job().ppl[parseInt(t.dataset.ppcnt, 10)];
@@ -3241,7 +3654,7 @@
     load();
     /* Set at build time in UTC, rendered in whatever zone the device is in, so
        the stamp reads correctly wherever the page is opened. */
-    var REV = "2026-10-18T03:12:00Z";
+    var REV = "2026-10-21T02:16:00Z";
     var revTxt;
     try {
         revTxt = new Date(REV).toLocaleString(undefined, {
